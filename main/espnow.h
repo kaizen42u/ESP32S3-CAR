@@ -1,0 +1,222 @@
+
+#pragma once
+
+#include <inttypes.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
+#include <assert.h>
+#include <ctype.h>
+#include <stdbool.h>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
+#include "freertos/timers.h"
+
+#include "esp_wifi.h"
+#include "esp_wifi_types.h"
+#include "esp_heap_caps.h"
+#include "esp_system.h"
+#include "esp_now.h"
+#include "esp_netif.h"
+#include "esp_mac.h"
+#include "esp_log.h"
+#include "esp_err.h"
+#include "esp_random.h"
+#include "esp_event.h"
+#include "esp_crc.h"
+#include "nvs_flash.h"
+#include "esp_timer.h"
+
+#include "mem_probe.h"
+
+#define ESP_MAP_CHECK_NULL_HANDLE(handle) if(handle == NULL) {ESP_LOGE(TAG, "runtime nullptr error on %s:%d", __FILE__, __LINE__); return;}
+#define ESP_MAP_CHECK_NULL_HANDLE_RV(handle) if(handle == NULL) {ESP_LOGE(TAG, "runtime nullptr error on %s:%d", __FILE__, __LINE__); return NULL;}
+#define ESP_MAP_CHECK_NULL_HANDLE_MSG(handle, msg) if(handle == NULL) {ESP_LOGE(TAG, "runtime nullptr error on %s:%d | %s", __FILE__, __LINE__, msg); return;}
+#define ESP_MAP_CHECK_NULL_HANDLE_MSG_RV(handle, msg) if(handle == NULL) {ESP_LOGE(TAG, "runtime nullptr error on %s:%d | %s", __FILE__, __LINE__, msg); return NULL;}
+
+#define ONE_SECOND_IN_US (1 * 1e6)
+
+#define ESPNOW_MAXDELAY 512
+#define ESPNOW_QUEUE_SIZE 6
+
+#define IS_BROADCAST_ADDR(addr) (memcmp(addr, broadcast_mac, ESP_NOW_ETH_ALEN) == 0)
+
+typedef struct
+{
+        wifi_phy_rate_t wifi_phy_rate;
+        wifi_interface_t wifi_interface;
+        wifi_mode_t mode;
+        esp_interface_t esp_interface;
+        bool long_range;
+        uint8_t channel;
+        char *pmk;
+        char *lmk;
+} espnow_config_t;
+
+typedef enum
+{
+        ESPNOW_SEND_CB,
+        ESPNOW_RECV_CB,
+} espnow_event_id_t;
+
+typedef struct
+{
+        uint8_t mac_addr[ESP_NOW_ETH_ALEN];
+        esp_now_send_status_t status;
+} espnow_event_send_cb_t;
+
+typedef struct
+{
+        uint8_t mac_addr[ESP_NOW_ETH_ALEN];
+        size_t data_len;
+        uint8_t *data;
+} espnow_event_recv_cb_t;
+
+typedef union
+{
+        espnow_event_send_cb_t send_cb;
+        espnow_event_recv_cb_t recv_cb;
+} espnow_event_info_t;
+
+/* When ESPNOW sending or receiving callback function is called, post event to ESPNOW task. */
+typedef struct
+{
+        espnow_event_id_t id;
+        espnow_event_info_t info;
+} espnow_event_t;
+
+typedef enum
+{
+        ESPNOW_PARAM_TYPE_TEXT,
+        ESPNOW_PARAM_TYPE_BATTERY_VOLTAGE,
+        ESPNOW_PARAM_TYPE_SYNC_RGB,
+        ESPNOW_PARAM_TYPE_CAR_MOVEMENT,
+        ESPNOW_PARAM_TYPE_CATAPULT_MOVEMENT,
+        ESPNOW_PARAM_TYPE_KEEPER_MOVEMENT,
+        ESPNOW_PARAM_TYPE_PING,
+        ESPNOW_PARAM_TYPE_ACK,
+        ESPNOW_PARAM_TYPE_NACK,
+        ESPNOW_PARAM_TYPE_MAX,
+} espnow_param_type_t;
+
+typedef enum
+{
+        ESPNOW_PARAM_ACK_NACK,
+        ESPNOW_PARAM_ACK_ACK,
+} espnow_param_ack_t;
+
+typedef enum
+{
+        ESPNOW_PARAM_SEQ_TX,
+        ESPNOW_PARAM_SEQ_RX,
+} espnow_param_seq_t;
+
+typedef enum
+{
+        ESPNOW_DATA_BROADCAST,
+        ESPNOW_DATA_UNICAST,
+} espnow_data_type_t;
+
+/* User defined field of ESPNOW data. */
+typedef struct
+{
+        uint16_t seq_num;             // Sequence number of ESPNOW data.
+        uint16_t crc;                 // CRC16 value of ESPNOW data.
+        espnow_data_type_t broadcast; // 0: broadcast, 1: unicast
+        espnow_param_ack_t ack;       // 0: nack, 1: ack
+        uint8_t salt;                 // random bits
+        espnow_param_type_t type;
+        uint8_t len;        // Length of payload, unit: byte.
+        uint8_t payload[0]; // Real payload of ESPNOW data.
+} espnow_data_t;
+
+/* Parameters of sending ESPNOW data. */
+typedef struct
+{
+        espnow_data_type_t broadcast; // Broadcast or unicast ESPNOW data.
+        espnow_param_type_t type;
+        espnow_param_ack_t ack;
+        uint16_t seq_num;                   // Sequence number of ESPNOW data.
+        int len;                            // Length of ESPNOW data to be sent, unit: byte.
+        uint8_t *buffer;                    // Buffer pointing to ESPNOW data.
+        uint8_t dest_mac[ESP_NOW_ETH_ALEN]; // MAC address of destination device.
+} espnow_send_param_t;
+
+typedef enum
+{
+        ESP_PEER_STATUS_UNKNOWN,
+        ESP_PEER_STATUS_LOST,
+        ESP_PEER_STATUS_PROTOCOL_ERROR,
+        ESP_PEER_STATUS_NOREPLY,
+        ESP_PEER_STATUS_REJECTED,
+        ESP_PEER_STATUS_IN_RANGE,
+        ESP_PEER_STATUS_AVAILABLE,
+        ESP_PEER_STATUS_CONNECTING,
+        ESP_PEER_STATUS_CONNECTED,
+        ESP_PEER_STATUS_MAX,
+} esp_peer_status_t;
+
+typedef enum
+{
+        ESP_PEER_PACKET_TEXT,
+        ESP_PEER_PACKET_BATTERY_VOLTAGE,
+        ESP_PEER_PACKET_SYNC_RGB,
+        ESP_PEER_PACKET_CAR_MOVEMENT,
+        ESP_PEER_PACKET_CATAPULT_MOVEMENT,
+        ESP_PEER_PACKET_KEEPER_MOVEMENT,
+        ESP_PEER_PACKET_PING,
+        ESP_PEER_PACKET_CONNECT,
+        ESP_PEER_PACKET_ACK,
+        ESP_PEER_PACKET_NACK,
+        ESP_PEER_PACKET_MAX,
+} esp_peer_packet_type_t;
+
+typedef struct
+{
+        uint8_t mac[ESP_NOW_ETH_ALEN];
+        int64_t lastseen_broadcast_us;
+        int64_t lastseen_unicast_us;
+        int64_t connect_time_us;
+        size_t conn_retry;
+        size_t seq_rx;
+        size_t seq_tx;
+        esp_peer_status_t status;
+} esp_peer_t;
+
+typedef struct
+{
+        esp_peer_t *entries;
+        size_t size;
+        size_t remote_connected;
+} esp_connection_handle_t;
+
+espnow_config_t *espnow_wifi_default_config(espnow_config_t *espnow_config);
+espnow_send_param_t *espnow_default_send_param(espnow_send_param_t *send_param);
+
+void espnow_wifi_init(espnow_config_t *espnow_config);
+QueueHandle_t espnow_init(espnow_config_t *espnow_config, esp_connection_handle_t *conn_handle);
+void espnow_deinit(espnow_send_param_t *send_param);
+
+espnow_data_t *espnow_data_parse(espnow_data_t *recv_data, espnow_event_recv_cb_t *recv_cb);
+
+espnow_send_param_t *espnow_get_send_param_broadcast(espnow_send_param_t *send_param);
+espnow_send_param_t *espnow_get_send_param_unicast(espnow_send_param_t *send_param, const uint8_t *mac);
+espnow_send_param_t *espnow_get_send_param(espnow_send_param_t *send_param, esp_peer_t *peer);
+
+esp_err_t espnow_send_data(espnow_send_param_t *send_param, espnow_param_type_t type, void *data, size_t len);
+esp_err_t espnow_send_text(espnow_send_param_t *send_param, char *text);
+esp_err_t espnow_reply(espnow_send_param_t *send_param, espnow_data_t *recv_data);
+
+void esp_connection_handle_init(esp_connection_handle_t *handle);
+void esp_connection_handle_clear(esp_connection_handle_t *handle);
+void esp_connection_handle_update(esp_connection_handle_t *handle);
+
+size_t esp_connection_count_connected(esp_connection_handle_t *handle);
+esp_peer_t *esp_connection_mac_lookup(esp_connection_handle_t *handle, const uint8_t *mac);
+esp_peer_t *esp_connection_mac_add_to_entry(esp_connection_handle_t *handle, const uint8_t *mac);
+
+void esp_connection_show_entries(esp_connection_handle_t *handle);
+
+void esp_peer_set_status(esp_peer_t *peer, esp_peer_status_t new_status);
