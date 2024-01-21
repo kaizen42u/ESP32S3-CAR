@@ -109,12 +109,6 @@ static const char __attribute__((unused)) * ESPNOW_PARAM_TYPE_STRING[] = {
 
 typedef enum
 {
-        ESPNOW_PARAM_ACK_NACK,
-        ESPNOW_PARAM_ACK_ACK,
-} espnow_param_ack_t;
-
-typedef enum
-{
         ESPNOW_PARAM_SEQ_TX,
         ESPNOW_PARAM_SEQ_RX,
 } espnow_param_seq_t;
@@ -131,9 +125,8 @@ typedef struct
         uint16_t seq_num;             // Sequence number of ESPNOW data.
         uint16_t crc;                 // CRC16 value of ESPNOW data.
         espnow_data_type_t broadcast; // 0: broadcast, 1: unicast
-        espnow_param_ack_t ack;       // 0: nack, 1: ack
-        uint8_t salt;                 // random bits
         espnow_param_type_t type;
+        uint8_t salt;       // random bits
         uint8_t len;        // Length of payload, unit: byte.
         uint8_t payload[0]; // Real payload of ESPNOW data.
 } espnow_data_t;
@@ -143,7 +136,6 @@ typedef struct
 {
         espnow_data_type_t broadcast; // Broadcast or unicast ESPNOW data.
         espnow_param_type_t type;
-        espnow_param_ack_t ack;
         uint16_t seq_num;                   // Sequence number of ESPNOW data.
         int len;                            // Length of ESPNOW data to be sent, unit: byte.
         uint8_t *buffer;                    // Buffer pointing to ESPNOW data.
@@ -203,6 +195,7 @@ typedef struct
         size_t seq_tx;
         esp_peer_status_t status;
         int rssi;
+        bool registered;
 } esp_peer_t;
 
 typedef struct
@@ -228,7 +221,7 @@ espnow_send_param_t *espnow_get_send_param(espnow_send_param_t *send_param, esp_
 
 esp_err_t espnow_send_data(espnow_send_param_t *send_param, espnow_param_type_t type, void *data, size_t len);
 esp_err_t espnow_send_text(espnow_send_param_t *send_param, char *text);
-esp_err_t espnow_reply(espnow_send_param_t *send_param, espnow_data_t *recv_data);
+esp_err_t espnow_reply(espnow_send_param_t *send_param);
 
 void esp_connection_handle_init(esp_connection_handle_t *handle);
 void esp_connection_handle_clear(esp_connection_handle_t *handle);
@@ -240,6 +233,8 @@ esp_peer_t *esp_connection_mac_lookup(esp_connection_handle_t *handle, const uin
 esp_peer_t *esp_connection_mac_add_to_entry(esp_connection_handle_t *handle, const uint8_t *mac);
 
 void esp_connection_show_entries(esp_connection_handle_t *handle);
+void esp_connection_send_heartbeat(esp_connection_handle_t *handle);
 
 void esp_connection_set_peer_limit(esp_connection_handle_t *handle, int8_t new_limit);
 void esp_peer_set_status(esp_peer_t *peer, esp_peer_status_t new_status);
+void esp_peer_process_received(esp_peer_t *peer, espnow_data_t *recv_data);

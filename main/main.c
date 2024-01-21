@@ -43,7 +43,8 @@ void rssi_task()
                 else
                 {
                         ping_count = ping_reset;
-                        espnow_send_text(&espnow_send_param, "ping");
+                        esp_connection_send_heartbeat(&esp_connection_handle);
+                        // espnow_send_text(&espnow_send_param, "ping");
                         // esp_connection_show_entries(&esp_connection_handle);
                 }
 
@@ -123,8 +124,8 @@ void app_main(void)
         {
                 // read the events and write to console
                 button_event_t remote_button_event = {0};
+
                 espnow_event_t espnow_evt;
-                espnow_send_param_t send_param;
                 if (xQueueReceive(espnow_event_queue, &espnow_evt, 0))
                 {
                         espnow_data_t *recv_data = NULL;
@@ -132,59 +133,41 @@ void app_main(void)
                         {
                         case ESPNOW_SEND_CB:
                                 espnow_event_send_cb_t *send_cb = &espnow_evt.info.send_cb;
-                                ESP_LOGV(TAG, "Send data to " MACSTR ", status1: %4s", MAC2STR(send_cb->mac_addr), send_cb->status == ESP_NOW_SEND_SUCCESS ? "OK" : "FAIL");
+                                if (send_cb->status != ESP_NOW_SEND_SUCCESS)
+                                {
+                                        LOG_WARNING("Send data to peer " MACSTR " failed", MAC2STR(send_cb->mac_addr));
+                                }
+                                else
+                                {
+                                        LOG_VERBOSE("Send data to peer " MACSTR " success", MAC2STR(send_cb->mac_addr));
+                                }
+                                // ESP_LOGV(TAG, "Send data to " MACSTR ", status1: %4s", MAC2STR(send_cb->mac_addr), send_cb->status == ESP_NOW_SEND_SUCCESS ? "OK" : "FAIL");
                                 break;
                         case ESPNOW_RECV_CB:
                                 espnow_event_recv_cb_t *recv_cb = &espnow_evt.info.recv_cb;
                                 if (!(recv_data = espnow_data_parse(recv_data, recv_cb)))
                                 {
+                                        LOG_WARNING("bad data packet from peer " MACSTR, MAC2STR(recv_cb->mac_addr));
                                         free(recv_cb->data);
                                         break;
                                 }
+
                                 esp_peer_t *peer = esp_connection_mac_add_to_entry(&esp_connection_handle, recv_cb->mac_addr);
-                                if (peer->status < ESP_PEER_STATUS_IN_RANGE)
-                                        esp_peer_set_status(peer, ESP_PEER_STATUS_IN_RANGE);
-                                espnow_get_send_param(&send_param, peer);
+                                espnow_get_send_param(&espnow_send_param, peer);
+                                esp_peer_process_received(peer, recv_data);
 
-                                if (recv_data->broadcast == ESPNOW_DATA_BROADCAST)
+                                if (recv_data->broadcast == ESPNOW_DATA_UNICAST)
                                 {
-                                        peer->lastseen_broadcast_us = esp_timer_get_time();
+                                        if (recv_data->len == sizeof(button_event_t))
+                                                memcpy(&remote_button_event, recv_data->payload, recv_data->len);
+                                        // print_mem(recv_data->payload, recv_data->len);
+                                }
 
-                                        if (recv_data->ack == ESPNOW_PARAM_ACK_ACK)
-                                                ESP_LOGV(TAG, "Packet id:[%4d] acknowleded by receiver", recv_data->seq_num);
-                                        else
-                                        {
-                                                // espnow_reply(&send_param, recv_data);
-                                                ESP_LOGV(TAG, "Receive %dth broadcast data from: " MACSTR ", len: %d",
-                                                         recv_data->seq_num,
-                                                         MAC2STR(recv_cb->mac_addr),
-                                                         recv_cb->data_len);
-                                                // print_mem(recv_data->payload, recv_data->len);
-                                        }
-                                }
-                                else if (recv_data->broadcast == ESPNOW_DATA_UNICAST)
-                                {
-                                        peer->lastseen_unicast_us = esp_timer_get_time();
-                                        if (recv_data->ack == ESPNOW_PARAM_ACK_ACK)
-                                                ESP_LOGV(TAG, "Packet id:[%4d] acknowleded by receiver", recv_data->seq_num);
-                                        else
-                                        {
-                                                espnow_reply(&send_param, recv_data);
-                                                if (peer->status == ESP_PEER_STATUS_CONNECTING)
-                                                        esp_peer_set_status(peer, ESP_PEER_STATUS_CONNECTED);
-                                                ESP_LOGV(TAG, "Receive %dth unicast data from: " MACSTR ", len: %d", recv_data->seq_num, MAC2STR(recv_cb->mac_addr), recv_cb->data_len);
-                                                if (recv_data->len == sizeof(button_event_t))
-                                                        memcpy(&remote_button_event, recv_data->payload, recv_data->len);
-                                                // print_mem(recv_data->payload, recv_data->len);
-                                        }
-                                }
-                                else
-                                        ESP_LOGW(TAG, "Receive error data from: " MACSTR "", MAC2STR(recv_cb->mac_addr));
                                 free(recv_cb->data);
 
                                 break;
                         default:
-                                ESP_LOGE(TAG, "Callback type error: %d", espnow_evt.id);
+                                LOG_ERROR("Callback type error: %d", espnow_evt.id);
                                 break;
                         }
                 }
