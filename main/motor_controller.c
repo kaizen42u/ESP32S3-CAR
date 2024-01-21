@@ -73,11 +73,11 @@ motor_controller_handle_t *motor_controller_init(motor_controller_handle_t *hand
 
 void motor_controller(motor_controller_handle_t *handle, button_event_t *event)
 {
-        if (event->event == BUTTON_LONG)
+        if (event->new_state == BUTTON_LONG)
                 return;
         if (!is_motor_control_pins(event->pin))
                 return;
-        if (event->event == BUTTON_UP)
+        if (event->new_state == BUTTON_UP)
         {
                 brushed_motor_set(handle->left, 0);
                 brushed_motor_set(handle->right, 0);

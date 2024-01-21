@@ -26,11 +26,11 @@ static void wifi_promiscuous_rx_cb(void *buf, wifi_promiscuous_pkt_type_t type)
                 rssi_event_t event = {
                     .rssi = ppkt->rx_ctrl.rssi,
                     .time_us = esp_timer_get_time()};
-                memcpy(event.recv_mac, hdr->addr2, 6);
+                memcpy(event.recv_mac, hdr->addr2, ESP_NOW_ETH_ALEN);
 
                 if (xQueueSend(rssi_queue, &event, 0) != pdTRUE)
                 {
-                        ESP_LOGW(TAG, "Send send queue fail");
+                        LOG_WARNING("Wi-Fi callback failed to send queue");
                 }
         }
 }
@@ -43,7 +43,7 @@ QueueHandle_t rssi_init(void)
         rssi_queue = xQueueCreate(RSSI_QUEUE_SIZE, sizeof(rssi_event_t));
         if (rssi_queue == NULL)
         {
-                ESP_LOGE(TAG, "Create mutex fail");
+                LOG_ERROR("Failed to create queue");
                 return NULL;
         }
         return rssi_queue;
@@ -51,5 +51,5 @@ QueueHandle_t rssi_init(void)
 
 void print_rssi_event(rssi_event_t *event)
 {
-        ESP_LOGI(TAG, "address " MACSTR " RSSI: %d", MAC2STR(event->recv_mac), event->rssi);
+        LOG_INFO("RSSI event: addr = " MACSTR ", RSSI: %d", MAC2STR(event->recv_mac), event->rssi);
 }

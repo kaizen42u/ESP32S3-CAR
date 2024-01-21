@@ -15,26 +15,13 @@
 #include "catapult_controller.h"
 #include "ws2812.h"
 #include "rssi.h"
+#include "logging.h"
+#include "mathop.h"
 
 static const char __attribute__((unused)) *TAG = "app_main";
 
-static espnow_config_t espnow_config;
 static espnow_send_param_t espnow_send_param;
 static esp_connection_handle_t esp_connection_handle;
-
-float constrain(float value, float min, float max)
-{
-        if (value >= max)
-                return max;
-        if (value <= min)
-                return min;
-        return value;
-}
-
-float map(float value, float in_max, float in_min, float out_max, float out_min)
-{
-        return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
 
 void rssi_task()
 {
@@ -47,41 +34,29 @@ void rssi_task()
 
         QueueHandle_t rssi_event_queue = rssi_init();
         uint8_t countdown = 0;
+        uint8_t ping_count = 0;
+        const uint8_t ping_reset = 30;
         for (;;)
         {
+                if (ping_count)
+                        ping_count--;
+                else
+                {
+                        ping_count = ping_reset;
+                        espnow_send_text(&espnow_send_param, "ping");
+                        // esp_connection_show_entries(&esp_connection_handle);
+                }
+
                 rssi_event_t rssi_event;
                 while (xQueueReceive(rssi_event_queue, &rssi_event, 0))
                 {
-                        const int rssi_min = -20;
                         // print_rssi_event(&rssi_event);
+                        esp_connection_update_rssi(&esp_connection_handle, &rssi_event);
+
+                        const int rssi_min = -20;
                         if (rssi_event.rssi > rssi_min)
                         {
-                                esp_peer_t *peer = esp_connection_mac_add_to_entry(&esp_connection_handle, rssi_event.recv_mac);
-                                if (peer->status == ESP_PEER_STATUS_CONNECTED)
-                                        peer->lastseen_unicast_us = esp_timer_get_time();
-                                
-                                if (peer != NULL && peer->status == ESP_PEER_STATUS_IN_RANGE)
-                                {
-                                        peer->lastseen_broadcast_us = esp_timer_get_time();
-                                        esp_peer_set_status(peer, ESP_PEER_STATUS_AVAILABLE);
-
-                                        /* Add unicast peer information to peer list. */
-                                        if (!esp_now_is_peer_exist(peer->mac))
-                                        {
-                                                esp_now_peer_info_t peer_info = {
-                                                    .channel = espnow_config.channel,
-                                                    .encrypt = false,
-                                                    .ifidx = espnow_config.esp_interface,
-                                                };
-                                                memcpy(peer_info.peer_addr, peer->mac, ESP_NOW_ETH_ALEN);
-                                                ESP_ERROR_CHECK(esp_now_add_peer(&peer_info));
-                                        }
-
-                                        // ESP_LOGI(TAG, "matching mac, %d", peer->status);
-                                        esp_connection_show_entries(&esp_connection_handle);
-                                        // print_mem(peer, sizeof(esp_peer_t));
-                                }
-                                countdown = 5;
+                                countdown = ping_reset * 3;
                                 float led_volume = map(rssi_event.rssi, 0, rssi_min, 50, 0);
                                 led_volume = constrain(led_volume, 0, 100);
                                 hsv.v = led_volume;
@@ -94,7 +69,6 @@ void rssi_task()
                         countdown--;
                 else
                 {
-                        // ESP_LOGE(TAG, "%d conneced", esp_connection_handle.remote_connected);
                         if (esp_connection_handle.remote_connected)
                                 hsv.v = 3 * esp_connection_handle.remote_connected;
                         else
@@ -102,7 +76,7 @@ void rssi_task()
                         ws2812_set_hsv(&ws2812_handle, &hsv);
                         ws2812_update(&ws2812_handle);
                 }
-                vTaskDelay(pdMS_TO_TICKS(100));
+                vTaskDelay(pdMS_TO_TICKS(10));
         }
 }
 
@@ -117,16 +91,20 @@ void app_main(void)
         }
         ESP_ERROR_CHECK(ret);
 
+        espnow_config_t espnow_config;
         espnow_wifi_default_config(&espnow_config);
         espnow_wifi_init(&espnow_config);
         espnow_default_send_param(&espnow_send_param);
         esp_connection_handle_init(&esp_connection_handle);
+        esp_connection_set_peer_limit(&esp_connection_handle, 2);
         QueueHandle_t espnow_event_queue = espnow_init(&espnow_config, &esp_connection_handle);
 
-        if (espnow_send_text(&espnow_send_param, "device init") != ESP_OK)
+        ret = espnow_send_text(&espnow_send_param, "device init");
+        if (ret != ESP_OK)
         {
-                ESP_LOGE(TAG, "Send error, quitting");
+                LOG_ERROR("ESP_NOW send error, quitting");
                 espnow_deinit(&espnow_send_param);
+                ESP_ERROR_CHECK(ret);
                 vTaskDelete(NULL);
         }
 
@@ -176,12 +154,12 @@ void app_main(void)
                                                 ESP_LOGV(TAG, "Packet id:[%4d] acknowleded by receiver", recv_data->seq_num);
                                         else
                                         {
-                                                espnow_reply(&send_param, recv_data);
+                                                // espnow_reply(&send_param, recv_data);
                                                 ESP_LOGV(TAG, "Receive %dth broadcast data from: " MACSTR ", len: %d",
                                                          recv_data->seq_num,
                                                          MAC2STR(recv_cb->mac_addr),
                                                          recv_cb->data_len);
-                                                print_mem(recv_data->payload, recv_data->len);
+                                                // print_mem(recv_data->payload, recv_data->len);
                                         }
                                 }
                                 else if (recv_data->broadcast == ESPNOW_DATA_UNICAST)
@@ -194,10 +172,10 @@ void app_main(void)
                                                 espnow_reply(&send_param, recv_data);
                                                 if (peer->status == ESP_PEER_STATUS_CONNECTING)
                                                         esp_peer_set_status(peer, ESP_PEER_STATUS_CONNECTED);
-                                                ESP_LOGI(TAG, "Receive %dth unicast data from: " MACSTR ", len: %d", recv_data->seq_num, MAC2STR(recv_cb->mac_addr), recv_cb->data_len);
+                                                ESP_LOGV(TAG, "Receive %dth unicast data from: " MACSTR ", len: %d", recv_data->seq_num, MAC2STR(recv_cb->mac_addr), recv_cb->data_len);
                                                 if (recv_data->len == sizeof(button_event_t))
                                                         memcpy(&remote_button_event, recv_data->payload, recv_data->len);
-                                                print_mem(recv_data->payload, recv_data->len);
+                                                // print_mem(recv_data->payload, recv_data->len);
                                         }
                                 }
                                 else
