@@ -22,6 +22,7 @@ static const char __attribute__((unused)) *TAG = "app_main";
 
 static espnow_send_param_t espnow_send_param;
 static esp_connection_handle_t esp_connection_handle;
+static motor_controller_handle_t motor_controller_handle;
 
 void rssi_task()
 {
@@ -34,20 +35,8 @@ void rssi_task()
 
         QueueHandle_t rssi_event_queue = rssi_init();
         uint8_t countdown = 0;
-        uint8_t ping_count = 0;
-        const uint8_t ping_reset = 30;
         for (;;)
         {
-                if (ping_count)
-                        ping_count--;
-                else
-                {
-                        ping_count = ping_reset;
-                        esp_connection_send_heartbeat(&esp_connection_handle);
-                        // espnow_send_text(&espnow_send_param, "ping");
-                        // esp_connection_show_entries(&esp_connection_handle);
-                }
-
                 rssi_event_t rssi_event;
                 while (xQueueReceive(rssi_event_queue, &rssi_event, 0))
                 {
@@ -57,7 +46,7 @@ void rssi_task()
                         const int rssi_min = -20;
                         if (rssi_event.rssi > rssi_min)
                         {
-                                countdown = ping_reset * 3;
+                                countdown = 100;
                                 float led_volume = map(rssi_event.rssi, 0, rssi_min, 50, 0);
                                 led_volume = constrain(led_volume, 0, 100);
                                 hsv.v = led_volume;
@@ -78,6 +67,24 @@ void rssi_task()
                         ws2812_update(&ws2812_handle);
                 }
                 vTaskDelay(pdMS_TO_TICKS(10));
+        }
+}
+
+void info_task()
+{
+        for (;;)
+        {
+                motor_controller_print_counts(&motor_controller_handle);
+                vTaskDelay(pdMS_TO_TICKS(100));
+        }
+}
+
+void ping_task()
+{
+        for (;;)
+        {
+                esp_connection_send_heartbeat(&esp_connection_handle);
+                vTaskDelay(pdMS_TO_TICKS(300));
         }
 }
 
@@ -109,7 +116,6 @@ void app_main(void)
                 vTaskDelete(NULL);
         }
 
-        motor_controller_handle_t motor_controller_handle;
         motor_controller_default_config(&motor_controller_handle);
         motor_controller_init(&motor_controller_handle);
         motor_controller_set_mcpwm_enable(&motor_controller_handle);
@@ -119,6 +125,8 @@ void app_main(void)
         catapult_controller_init(&catapult_controller_handle);
 
         xTaskCreate(rssi_task, "rssi_task", 4096, NULL, 4, NULL);
+        xTaskCreate(ping_task, "ping_task", 4096, NULL, 4, NULL);
+        xTaskCreate(info_task, "info_task", 4096, NULL, 4, NULL);
 
         while (true)
         {
@@ -172,8 +180,15 @@ void app_main(void)
                         }
                 }
 
-                motor_controller(&motor_controller_handle, &remote_button_event);
-                catapult_controller(&catapult_controller_handle, &remote_button_event);
+                if (esp_connection_handle.remote_connected == 0)
+                {
+                        motor_controller_stop_all(&motor_controller_handle);
+                }
+                else
+                {
+                        motor_controller(&motor_controller_handle, &remote_button_event);
+                        catapult_controller(&catapult_controller_handle, &remote_button_event);
+                }
                 esp_connection_handle_update(&esp_connection_handle);
                 heap_caps_check_integrity_all(true);
                 vTaskDelay(1);
