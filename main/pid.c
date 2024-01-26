@@ -5,7 +5,7 @@ void pid_init(pid_handle_t *handle, float dt, float Kp, float Ki, float Kd, doub
 {
 	pid_set_timebase(handle, dt);
 	pid_set_tuning_values(handle, Kp, Ki, Kd);
-	pid_set_integrator_cap(handle, -0.2, 0.2);
+	pid_set_integrator_cap(handle, -Ki_cap, Ki_cap);
 	pid_set_output_range(handle, -1, 1);
 	pid_reset(handle);
 }
