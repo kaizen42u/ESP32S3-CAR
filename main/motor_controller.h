@@ -6,13 +6,35 @@
 #include "motor.h"
 #include "pid.h"
 #include "ringbuffer.h"
+#include "logging.h"
 
 #include "esp_log.h"
 
 #define DISTANCE_DIFFERENCE_INTEGRATE_SAMPLES (50)
 #define VELOCITY_INTETGRATE_SAMPLES (50)
 #define ACCELERATION_INTETGRATE_SAMPLES (50)
-#define STALL_RESET_TIMEOUT_MS (200)
+
+typedef enum
+{
+        DIRECTION_NONE,
+        DIRECTION_COAST,
+        DIRECTION_BRAKE,
+        DIRECTION_FORWARD,
+        DIRECTION_BACKWARD,
+        DIRECTION_TURN_LEFT,
+        DIRECTION_TURN_RIGHT,
+        DIRECTION_MAX,
+} direction_t;
+
+static const char __attribute__((unused)) * DIRECTION_STRING[] = {
+    "DIRECTION_NONE",
+    "DIRECTION_COAST",
+    "DIRECTION_BRAKE",
+    "DIRECTION_FORWARD",
+    "DIRECTION_BACKWARD",
+    "DIRECTION_TURN_LEFT",
+    "DIRECTION_TURN_RIGHT",
+    "DIRECTION_MAX"};
 
 typedef struct
 {
@@ -22,8 +44,8 @@ typedef struct
         ringbuffer_handle_t *left_acceleration_rb_handle, *right_acceleration_rb_handle;
 
         pid_handle_t *distance_difference_pid_handle;
-        ringbuffer_handle_t *distance_difference_rb_handle;
         gpio_num_t mcpwm_en;
+        direction_t direction;
 } motor_controller_handle_t;
 
 bool is_motor_control_pins(gpio_num_t pin);

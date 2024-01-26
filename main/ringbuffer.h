@@ -36,6 +36,7 @@ size_t ringbuffer_get_capacity(ringbuffer_handle_t *handle);
 bool ringbuffer_is_full(ringbuffer_handle_t *handle);
 
 ringbuffer_state_t ringbuffer_put(ringbuffer_handle_t *handle, float data_in);
+ringbuffer_state_t ringbuffer_fill(ringbuffer_handle_t *handle, float data_in);
 ringbuffer_state_t ringbuffer_peek(ringbuffer_handle_t *handle, float *data_out);
 ringbuffer_state_t ringbuffer_get(ringbuffer_handle_t *handle, float *data_out);
 

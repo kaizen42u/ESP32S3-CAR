@@ -76,6 +76,25 @@ ringbuffer_state_t ringbuffer_put(ringbuffer_handle_t *handle, float data_in)
         return RINGBUFFER_OK;
 }
 
+ringbuffer_state_t ringbuffer_fill(ringbuffer_handle_t *handle, float data_in)
+{
+        if ((handle == NULL) || (handle->buffer == NULL))
+        {
+                LOG_ERROR("NULL pointer, handle=0x%X, handle->buffer=0x%X", (uintptr_t)handle, (uintptr_t)handle->buffer);
+                return RINGBUFFER_ARGUMENT_ERROR;
+        }
+
+        ringbuffer_state_t ret;
+        while (handle->size < handle->capacity)
+        {
+                ret = ringbuffer_put(handle, data_in);
+                if (ret != RINGBUFFER_OK)
+                        return ret;
+        }
+
+        return RINGBUFFER_OK;
+}
+
 ringbuffer_state_t ringbuffer_peek(ringbuffer_handle_t *handle, float *data_out)
 {
         if ((handle == NULL) || (handle->buffer == NULL) || (data_out == NULL))
