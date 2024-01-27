@@ -74,7 +74,7 @@ void info_task()
 {
         for (;;)
         {
-                motor_controller_print_counts(&motor_controller_handle);
+                // motor_controller_print_stat(&motor_controller_handle);
                 vTaskDelay(pdMS_TO_TICKS(100));
         }
 }
