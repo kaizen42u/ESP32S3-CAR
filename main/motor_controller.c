@@ -77,13 +77,13 @@ motor_controller_handle_t *motor_controller_default_config(motor_controller_hand
         // setup pid controllers
 
         static pid_handle_t left_motor_pid_handle, right_motor_pid_handle;
-        pid_init(&left_motor_pid_handle, 0.001, 0.01, 0, 0, 0.3);
-        pid_init(&right_motor_pid_handle, 0.001, 0.01, 0, 0, 0.3);
+        pid_init(&left_motor_pid_handle, 0.001, 0.01, 0.06, 0.00001, 0.3);
+        pid_init(&right_motor_pid_handle, 0.001, 0.01, 0.06, 0.00001, 0.3);
         pid_set_output_range(&left_motor_pid_handle, -100, 100);
         pid_set_output_range(&right_motor_pid_handle, -100, 100);
 
         static pid_handle_t distance_difference_pid_handle;
-        pid_init(&distance_difference_pid_handle, 0.001, 0, 0, 0, 0.2);
+        pid_init(&distance_difference_pid_handle, 0.001, 0.04, 0.06, 0.00001, 0.4);
         pid_set_output_range(&distance_difference_pid_handle, -50, 50);
 
         // create the handle
@@ -225,6 +225,12 @@ void motor_controller(motor_controller_handle_t *handle, button_event_t *event)
                 ESP_LOGW(TAG, "button id %d is undefined", event->pin);
                 break;
         }
+}
+
+void motor_controller_stop_all(motor_controller_handle_t *handle)
+{
+        dc_motor_brake(handle->left_motor_handle);
+        dc_motor_brake(handle->right_motor_handle);
 }
 
 void motor_controller_print_stat(motor_controller_handle_t *handle)
