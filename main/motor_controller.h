@@ -57,5 +57,7 @@ void motor_controller_clear_mcpwm_enable(motor_controller_handle_t *handle);
 motor_controller_handle_t *motor_controller_default_config(motor_controller_handle_t *handle);
 motor_controller_handle_t *motor_controller_init(motor_controller_handle_t *handle);
 void motor_controller(motor_controller_handle_t *handle, button_event_t *event);
+void motor_controller_open(motor_controller_handle_t *handle, button_event_t *event);
+
 void motor_controller_stop_all(motor_controller_handle_t *handle);
 void motor_controller_print_stat(motor_controller_handle_t *handle);
