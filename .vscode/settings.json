@@ -46,5 +46,5 @@
     "pindef.h": "c",
     "connection.h": "c"
   },
-  "idf.port": "/dev/ttyACM0"
+  "idf.port": "/dev/ttyACM1"
 }

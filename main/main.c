@@ -74,7 +74,7 @@ void info_task()
 {
         for (;;)
         {
-                // motor_controller_print_stat(&motor_controller_handle);
+                motor_controller_print_stat(&motor_controller_handle);
                 vTaskDelay(pdMS_TO_TICKS(100));
         }
 }
@@ -187,6 +187,7 @@ void app_main(void)
                 else
                 {
                         motor_controller(&motor_controller_handle, &remote_button_event);
+                        //motor_controller_open(&motor_controller_handle, &remote_button_event);
                         catapult_controller(&catapult_controller_handle, &remote_button_event);
                 }
                 esp_connection_handle_update(&esp_connection_handle);

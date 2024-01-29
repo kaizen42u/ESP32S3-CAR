@@ -62,7 +62,7 @@ void dc_motor_set_duty(motor_handle_t *handle, float duty_cycle)
 {
         duty_cycle = constrain(duty_cycle, 0, 100);
         if (duty_cycle == 0)
-                return dc_motor_brake(handle);
+                return dc_motor_coast(handle);
         switch (handle->direction)
         {
         case MOTOR_DIRECTION_DEFAULT:
