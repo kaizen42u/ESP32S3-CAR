@@ -1,2 +1,5 @@
-# do not commit build directory
+# Build directory
 /build/
+
+# Logs
+*.log
