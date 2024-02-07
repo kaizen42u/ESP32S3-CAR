@@ -24,6 +24,25 @@ static espnow_send_param_t espnow_send_param;
 static esp_connection_handle_t esp_connection_handle;
 static motor_controller_handle_t motor_controller_handle;
 
+void config_wake_gpio(void)
+{
+        gpio_config_t wake_io_conf = {
+            .pin_bit_mask = 1 << GPIO_WAKE,
+            .mode = GPIO_MODE_OUTPUT,
+            .pull_up_en = GPIO_PULLUP_DISABLE,
+            .pull_down_en = GPIO_PULLDOWN_DISABLE,
+            .intr_type = GPIO_INTR_DISABLE,
+        };
+        ESP_ERROR_CHECK(gpio_config(&wake_io_conf));
+        gpio_set_level(GPIO_WAKE, 1);
+}
+
+void kill_power(void)
+{
+        gpio_set_level(GPIO_WAKE, 0);
+        for(;;);
+}
+
 void rssi_task()
 {
         ws2812_hsv_t hsv = {.h = 350, .s = 75, .v = 0};
@@ -90,6 +109,8 @@ void ping_task()
 
 void app_main(void)
 {
+        config_wake_gpio();
+        
         // Initialize NVS
         esp_err_t ret = nvs_flash_init();
         if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
