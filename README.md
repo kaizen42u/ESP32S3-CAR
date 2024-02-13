@@ -28,7 +28,7 @@ This project is about creating a robot car that can be controlled by a [remote](
 - Connect the ESP32S3 module to your computer using USB cables
 - Open the sketch in Visual Studio Code
 - Select the correct board (ESP32S3 Dev Module) and port
-- Upload the sketche to the ESP32S3 module
+- Upload the sketch to the ESP32S3 module
 
 ## Usage
 
