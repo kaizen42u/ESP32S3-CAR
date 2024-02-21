@@ -97,7 +97,9 @@ void info_task()
 {
         for (;;)
         {
-                motor_controller_print_stat(&motor_controller_handle);
+                // motor_controller_print_stat();
+                motor_group_stat_pkt_t *stat = motor_controller_get_stat();
+                espnow_send_data(&espnow_send_param, ESPNOW_PARAM_TYPE_MOTOR_STAT, stat, sizeof(motor_group_stat_pkt_t));
                 vTaskDelay(pdMS_TO_TICKS(100));
         }
 }
@@ -182,7 +184,7 @@ void app_main(void)
                 button_event_t remote_button_event = {0};
 
                 espnow_event_t espnow_evt;
-                if (xQueueReceive(espnow_event_queue, &espnow_evt, 0))
+                while (xQueueReceive(espnow_event_queue, &espnow_evt, 0))
                 {
                         espnow_data_t *recv_data = NULL;
                         switch (espnow_evt.id)
@@ -235,7 +237,7 @@ void app_main(void)
                 else
                 {
                         motor_controller(&motor_controller_handle, &remote_button_event);
-                        //motor_controller_open(&motor_controller_handle, &remote_button_event);
+                        //motor_controller_openloop(&motor_controller_handle, &remote_button_event);
                         catapult_controller(&catapult_controller_handle, &remote_button_event);
                 }
                 esp_connection_handle_update(&esp_connection_handle);

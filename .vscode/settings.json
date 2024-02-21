@@ -44,7 +44,8 @@
     "timers.h": "c",
     "motor_controller.h": "c",
     "pindef.h": "c",
-    "connection.h": "c"
+    "connection.h": "c",
+    "bitset": "c"
   },
   "idf.port": "/dev/ttyACM0",
   "cSpell.words": [
@@ -57,18 +58,34 @@
     "gpio",
     "hpoint",
     "ifidx",
+    "imax",
+    "imin",
     "IRAM",
+    "Lacc",
     "lastseen",
     "lastsent",
+    "Lcnt",
     "LEDC",
     "LOGD",
     "LOGI",
     "LOGV",
     "LOGW",
+    "Lpwm",
+    "Lspd",
     "MACSTR",
     "mcpwm",
+    "MOTORL",
+    "MOTORR",
     "netif",
+    "openloop",
+    "pcnt",
     "pinmask",
-    "rssi"
+    "Racc",
+    "rampup",
+    "ringbuffer",
+    "Rpwm",
+    "Rspd",
+    "rssi",
+    "setpoint"
   ]
 }

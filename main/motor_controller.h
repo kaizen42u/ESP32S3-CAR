@@ -8,11 +8,12 @@
 #include "ringbuffer.h"
 #include "logging.h"
 
+#include "packets.h"
 #include "esp_log.h"
 
 #define DISTANCE_DIFFERENCE_INTEGRATE_SAMPLES (50)
-#define VELOCITY_INTETGRATE_SAMPLES (50)
-#define ACCELERATION_INTETGRATE_SAMPLES (50)
+#define VELOCITY_INTEGRATE_SAMPLES (50)
+#define ACCELERATION_INTEGRATE_SAMPLES (50)
 
 typedef enum
 {
@@ -57,7 +58,13 @@ void motor_controller_clear_mcpwm_enable(motor_controller_handle_t *handle);
 motor_controller_handle_t *motor_controller_default_config(motor_controller_handle_t *handle);
 motor_controller_handle_t *motor_controller_init(motor_controller_handle_t *handle);
 void motor_controller(motor_controller_handle_t *handle, button_event_t *event);
-void motor_controller_open(motor_controller_handle_t *handle, button_event_t *event);
+void update_feedback(motor_controller_handle_t * handle);
+void update_pid(motor_controller_handle_t *handle);
+void read_buttons(motor_controller_handle_t *handle, button_event_t *event);
+void set_velocity(float left, float right);
+void update_motors(motor_controller_handle_t *handle);
+void motor_controller_openloop(motor_controller_handle_t *handle, button_event_t *event);
 
 void motor_controller_stop_all(motor_controller_handle_t *handle);
-void motor_controller_print_stat(motor_controller_handle_t *handle);
+motor_group_stat_pkt_t *motor_controller_get_stat(void);
+void motor_controller_print_stat(void);
