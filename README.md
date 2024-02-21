@@ -1,35 +1,47 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C6 | ESP32-H2 | ESP32-S2 | ESP32-S3 |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | -------- | -------- |
+# ESP32S3 Robot Car Implementation
 
-# _Sample project_
+This project is about creating a robot car that can be controlled by a [remote](https://github.com/kaizen42u/ESP32S3-REMOTE) using **ESP-NOW** protocol. ESP-NOW is a peer-to-peer communication protocol that allows devices to send and receive data without connecting to a Wi-Fi network. This project supports multiple remote connections (up to 6 concurrent) to the same robot car.
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+## Features
 
-This is the simplest buildable example. The example is used by command `idf.py create-project`
-that copies the project to user specified path and set it's name. For more information follow the [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project)
+- Robot car with two wheels, two motors, and a battery
+- ESP32S3 module with built-in Wi-Fi and Bluetooth
+- ESP-NOW protocol for fast and reliable communication
+- Multiple remote connections to the same robot car
+- RSSI for pairing
+- PID closed-loop control
 
+## Requirements
 
+- Hardware:
+  - Robot car kit with chassis, wheels, motors, and battery
+  - ESP32S3 module
+  - Breadboard and wires
+- Software:
+  - Visual Studio Code
+  - ESP-IDF Version 1.7.0
 
-## How to use example
-We encourage the users to use the example as a template for the new projects.
-A recommended way is to follow the instructions on a [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project).
+## Installation
 
-## Example folder contents
+- Download and install [Visual Studio Code](https://code.visualstudio.com/)
+- Install [ESP-IDF extension](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension)
+- Connect the ESP32S3 module to your computer using USB cables
+- Open the sketch in Visual Studio Code
+- Select the correct board (ESP32S3 Dev Module) and port
+- Upload the sketch to the ESP32S3 module
 
-The project **sample_project** contains one source file in C language [main.c](main/main.c). The file is located in folder [main](main).
+## Usage
 
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt`
-files that provide set of directives and instructions describing the project's source files and targets
-(executable, library, or both). 
+- Turn on the robot car and the remote
+- Hold the remote close to the robot car and start pressing buttons
+- Wait for the ESP-NOW connection to be established
+- Use the joystick and the buttons on the remote to control the robot car
+- Enjoy!
 
-Below is short explanation of remaining files in the project folder.
+## License
 
-```
-├── CMakeLists.txt
-├── main
-│   ├── CMakeLists.txt
-│   └── main.c
-└── README.md                  This is the file you are currently reading
-```
-Additionally, the sample project contains Makefile and component.mk files, used for the legacy Make based build system. 
-They are not used or needed when building with CMake and idf.py.
+This project is licensed under the MIT License - see the LICENSE file for details
+
+## Remote Github Page
+
+For more information about the remote implementation, please visit the [remote github page](https://github.com/kaizen42u/ESP32S3-REMOTE)
