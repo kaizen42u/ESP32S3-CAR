@@ -327,6 +327,7 @@ QueueHandle_t espnow_init(espnow_config_t *espnow_config, esp_connection_handle_
         };
         memcpy(peer.peer_addr, broadcast_mac, ESP_NOW_ETH_ALEN);
         ESP_ERROR_CHECK(esp_now_add_peer(&peer));
+        esp_connection_mac_add_to_entry(esp_connection_handle, peer.peer_addr);
 
         return espnow_queue;
 }

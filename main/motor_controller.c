@@ -192,8 +192,8 @@ void motor_controller(motor_controller_handle_t *handle, button_event_t *event)
                 dc_motor_set_duty(handle->right_motor_handle, right_duty_cycle);
                 break;
         default:
-                dc_motor_brake(handle->left_motor_handle);
-                dc_motor_brake(handle->right_motor_handle);
+                dc_motor_coast(handle->left_motor_handle);
+                dc_motor_coast(handle->right_motor_handle);
                 break;
         }
 

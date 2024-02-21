@@ -206,7 +206,7 @@ typedef struct
         int8_t remote_connected;
 } esp_connection_handle_t;
 
-espnow_config_t *espnow_wifi_default_config();
+espnow_config_t *espnow_wifi_default_config(espnow_config_t *config);
 espnow_send_param_t *espnow_default_send_param(espnow_send_param_t *send_param);
 
 void espnow_wifi_init(espnow_config_t *espnow_config);

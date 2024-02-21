@@ -24,6 +24,16 @@ static espnow_send_param_t espnow_send_param;
 static esp_connection_handle_t esp_connection_handle;
 static motor_controller_handle_t motor_controller_handle;
 
+void keep_power(void)
+{
+        gpio_set_level(GPIO_WAKE, 1);
+}
+
+void kill_power(void)
+{
+        gpio_set_level(GPIO_WAKE, 0);
+}
+
 void config_wake_gpio(void)
 {
         gpio_config_t wake_io_conf = {
@@ -34,13 +44,7 @@ void config_wake_gpio(void)
             .intr_type = GPIO_INTR_DISABLE,
         };
         ESP_ERROR_CHECK(gpio_config(&wake_io_conf));
-        gpio_set_level(GPIO_WAKE, 1);
-}
-
-void kill_power(void)
-{
-        gpio_set_level(GPIO_WAKE, 0);
-        for(;;);
+        keep_power();
 }
 
 void rssi_task()
@@ -107,6 +111,28 @@ void ping_task()
         }
 }
 
+#define TIME_BEFORE_RESET (10)
+
+void power_switch_task()
+{
+        uint8_t elapsed_time = 0;
+        for (;;)
+        {
+                if (esp_connection_handle.remote_connected) {
+                        elapsed_time = 0;
+                } else if (elapsed_time < TIME_BEFORE_RESET){
+                        elapsed_time = elapsed_time + 1;
+                }
+
+                if (elapsed_time >= TIME_BEFORE_RESET) {
+                        kill_power();
+                } else {
+                        keep_power();
+                }
+                vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+}
+
 void app_main(void)
 {
         config_wake_gpio();
@@ -148,6 +174,7 @@ void app_main(void)
         xTaskCreate(rssi_task, "rssi_task", 4096, NULL, 4, NULL);
         xTaskCreate(ping_task, "ping_task", 4096, NULL, 4, NULL);
         xTaskCreate(info_task, "info_task", 4096, NULL, 4, NULL);
+        xTaskCreate(power_switch_task, "power_switch_task", 4096, NULL, 4, NULL);
 
         while (true)
         {
