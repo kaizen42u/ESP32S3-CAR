@@ -98,8 +98,11 @@ void info_task()
         for (;;)
         {
                 // motor_controller_print_stat();
-                motor_group_stat_pkt_t *stat = motor_controller_get_stat();
-                espnow_send_data(&espnow_send_param, ESPNOW_PARAM_TYPE_MOTOR_STAT, stat, sizeof(motor_group_stat_pkt_t));
+                if (esp_connection_handle.remote_connected)
+                {
+                        motor_group_stat_pkt_t *stat = motor_controller_get_stat();
+                        espnow_send_data(&espnow_send_param, ESPNOW_PARAM_TYPE_MOTOR_STAT, stat, sizeof(motor_group_stat_pkt_t)); // DEBUG ONLY
+                }
                 vTaskDelay(pdMS_TO_TICKS(100));
         }
 }
@@ -120,15 +123,21 @@ void power_switch_task()
         uint8_t elapsed_time = 0;
         for (;;)
         {
-                if (esp_connection_handle.remote_connected) {
+                if (esp_connection_handle.remote_connected)
+                {
                         elapsed_time = 0;
-                } else if (elapsed_time < TIME_BEFORE_RESET){
+                }
+                else if (elapsed_time < TIME_BEFORE_RESET)
+                {
                         elapsed_time = elapsed_time + 1;
                 }
 
-                if (elapsed_time >= TIME_BEFORE_RESET) {
+                if (elapsed_time >= TIME_BEFORE_RESET)
+                {
                         kill_power();
-                } else {
+                }
+                else
+                {
                         keep_power();
                 }
                 vTaskDelay(pdMS_TO_TICKS(1000));
@@ -138,7 +147,7 @@ void power_switch_task()
 void app_main(void)
 {
         config_wake_gpio();
-        
+
         // Initialize NVS
         esp_err_t ret = nvs_flash_init();
         if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -237,7 +246,7 @@ void app_main(void)
                 else
                 {
                         motor_controller(&motor_controller_handle, &remote_button_event);
-                        //motor_controller_openloop(&motor_controller_handle, &remote_button_event);
+                        // motor_controller_openloop(&motor_controller_handle, &remote_button_event);
                         catapult_controller(&catapult_controller_handle, &remote_button_event);
                 }
                 esp_connection_handle_update(&esp_connection_handle);
