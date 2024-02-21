@@ -125,17 +125,17 @@ typedef struct
         uint16_t seq_num;             // Sequence number of ESPNOW data.
         uint16_t crc;                 // CRC16 value of ESPNOW data.
         espnow_data_type_t broadcast; // 0: broadcast, 1: unicast
-        espnow_param_type_t type;
-        uint8_t salt;       // random bits
-        uint8_t len;        // Length of payload, unit: byte.
-        uint8_t payload[0]; // Real payload of ESPNOW data.
+        espnow_param_type_t type;     //
+        uint8_t salt;                 // random bits
+        uint8_t len;                  // Length of payload, unit: byte.
+        uint8_t payload[0];           // Real payload of ESPNOW data.
 } espnow_data_t;
 
 /* Parameters of sending ESPNOW data. */
 typedef struct
 {
-        espnow_data_type_t broadcast; // Broadcast or unicast ESPNOW data.
-        espnow_param_type_t type;
+        espnow_data_type_t broadcast;       // Broadcast or unicast ESPNOW data.
+        espnow_param_type_t type;           //
         uint16_t seq_num;                   // Sequence number of ESPNOW data.
         int len;                            // Length of ESPNOW data to be sent, unit: byte.
         uint8_t *buffer;                    // Buffer pointing to ESPNOW data.

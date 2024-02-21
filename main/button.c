@@ -133,7 +133,7 @@ QueueHandle_t button_init(void)
         button_queue = xQueueCreate(BUTTON_QUEUE_DEPTH, sizeof(button_event_t)); // TODO: statically allow memory
         if (button_queue == NULL)
         {
-                LOG_ERROR("Create queue falied");
+                LOG_ERROR("Create queue failed");
                 button_deinit();
                 return NULL;
         }

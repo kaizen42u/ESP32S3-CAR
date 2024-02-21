@@ -8,23 +8,23 @@ QueueHandle_t rssi_queue;
 static void wifi_promiscuous_rx_cb(void *buf, wifi_promiscuous_pkt_type_t type)
 {
 
-        // All espnow traffic uses action frames which are a subtype of the mgmnt frames so filter out everything else.
+        // All espnow traffic uses action frames which are a subtype of the management frames so filter out everything else.
         if (type != WIFI_PKT_MGMT)
                 return;
 
         static const uint8_t ACTION_SUBTYPE = 0xd0;
         // static const uint8_t ESPRESSIF_OUI[] = {0x18, 0xfe, 0x34};
 
-        const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buf;
-        const wifi_ieee80211_packet_t *ipkt = (wifi_ieee80211_packet_t *)ppkt->payload;
-        const wifi_ieee80211_mac_hdr_t *hdr = &ipkt->hdr;
+        const wifi_promiscuous_pkt_t *promiscuous_packet = (wifi_promiscuous_pkt_t *)buf;
+        const wifi_ieee80211_packet_t *ieee80211_packet = (wifi_ieee80211_packet_t *)promiscuous_packet->payload;
+        const wifi_ieee80211_mac_hdr_t *hdr = &ieee80211_packet->hdr;
 
         // Only continue processing if this is an action frame containing the Espressif OUI.
         if ((ACTION_SUBTYPE == (hdr->frame_ctrl & 0xFF)))
         {
                 // print_mem(hdr, sizeof(wifi_ieee80211_mac_hdr_t));
                 rssi_event_t event = {
-                    .rssi = ppkt->rx_ctrl.rssi,
+                    .rssi = promiscuous_packet->rx_ctrl.rssi,
                     .time_us = esp_timer_get_time()};
                 memcpy(event.recv_mac, hdr->addr2, ESP_NOW_ETH_ALEN);
 

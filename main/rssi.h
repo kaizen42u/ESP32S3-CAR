@@ -17,7 +17,6 @@
 
 #define RSSI_QUEUE_SIZE (64)
 
-// Estructuras para calcular los paquetes, el RSSI, etc
 typedef struct
 {
         uint16_t frame_ctrl : 16;
