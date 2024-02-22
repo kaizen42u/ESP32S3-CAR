@@ -47,7 +47,7 @@
     "connection.h": "c",
     "bitset": "c"
   },
-  "idf.port": "/dev/ttyACM0",
+  "idf.port": "/dev/ttyACM1",
   "cSpell.words": [
     "ANYEDGE",
     "cmpr",
@@ -87,5 +87,6 @@
     "Rspd",
     "rssi",
     "setpoint"
-  ]
+  ],
+  "cmake.configureOnOpen": false
 }

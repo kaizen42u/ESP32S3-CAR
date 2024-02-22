@@ -4,7 +4,7 @@
 static const char *TAG = "motor_controller";
 
 static motor_group_stat_pkt_t motor_stat;
-const int speed_reference = 50;
+const int speed_reference = 10;
 const float rampup_initial = 0.6, rampup_delta = 0.005;
 static float rampup = 0;
 
@@ -82,14 +82,14 @@ motor_controller_handle_t *motor_controller_default_config(motor_controller_hand
         // setup pid controllers
 
         static pid_handle_t left_motor_pid_handle, right_motor_pid_handle;
-        pid_init(&left_motor_pid_handle, 0.001, 0.006, 0.06, 0.00001, 0.3);
-        pid_init(&right_motor_pid_handle, 0.001, 0.006, 0.06, 0.00001, 0.3);
+        pid_init(&left_motor_pid_handle, 0.01, 0.11, 0.14, 0.007, 0.3);
+        pid_init(&right_motor_pid_handle, 0.01, 0.1, 0.13, 0.005, 0.3);
         pid_set_output_range(&left_motor_pid_handle, -100, 100);
         pid_set_output_range(&right_motor_pid_handle, -100, 100);
 
         static pid_handle_t distance_difference_pid_handle;
-        pid_init(&distance_difference_pid_handle, 0.001, 0.06, 0.25, 0.00001, 0.4);
-        pid_set_output_range(&distance_difference_pid_handle, -50, 50);
+        pid_init(&distance_difference_pid_handle, 0.01, 0.02, 0.02, 0.0, 0.4);
+        pid_set_output_range(&distance_difference_pid_handle, -10, 10);
 
         // create the handle
 
@@ -178,21 +178,24 @@ void read_buttons(motor_controller_handle_t *handle, button_event_t *event)
         {
         case GPIO_BUTTON_UP:
                 motor_controller_set_direction(handle, DIRECTION_FORWARD);
+                set_velocity(speed_reference, speed_reference);
                 break;
         case GPIO_BUTTON_DOWN:
                 motor_controller_set_direction(handle, DIRECTION_BACKWARD);
+                set_velocity(speed_reference, speed_reference);
                 break;
         case GPIO_BUTTON_LEFT:
                 motor_controller_set_direction(handle, DIRECTION_TURN_LEFT);
+                set_velocity(speed_reference / 2, speed_reference / 2);
                 break;
         case GPIO_BUTTON_RIGHT:
                 motor_controller_set_direction(handle, DIRECTION_TURN_RIGHT);
+                set_velocity(speed_reference / 2, speed_reference / 2);
                 break;
         default:
                 ESP_LOGW(TAG, "button id %d is undefined", event->pin);
                 break;
         }
-        set_velocity(speed_reference, speed_reference);
         rampup = rampup_initial;
 }
 
@@ -255,7 +258,6 @@ motor_group_stat_pkt_t *motor_controller_get_stat(void)
 {
         return &motor_stat;
 }
-
 
 void motor_controller_print_stat(void)
 {

@@ -251,6 +251,6 @@ void app_main(void)
                 }
                 esp_connection_handle_update(&esp_connection_handle);
                 heap_caps_check_integrity_all(true);
-                vTaskDelay(1);
+                vTaskDelay(pdMS_TO_TICKS(10));
         }
 }
