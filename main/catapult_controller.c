@@ -103,7 +103,7 @@ void catapult_controller(catapult_controller_handle_t *handle, button_event_t *e
                 //handle->turn_angle = catapult_controller_constrain(handle->turn_angle - 1, 50, 120);
                 //handle->laser_duty_cycle = catapult_controller_constrain(handle->laser_duty_cycle - 1, 0, 100);
                 // handle->turn_angle = CATAPULT_TILT_RIGHT_ANGLE;
-
+                float test = 123;
                 break;
         // case STATE_BASE_TURN:
         //         if (event->pin == GPIO_BUTTON_TILT_LEFT && event->new_state == BUTTON_DOWN)
