@@ -1,6 +1,9 @@
 
 #include "catapult_controller.h"
 
+#define CATAPULT_TILT_LEFT_ANGLE (50)
+#define CATAPULT_TILT_RIGHT_ANGLE (130)
+
 float catapult_controller_constrain(float value, float min, float max)
 {
         if (value >= max)
@@ -102,6 +105,24 @@ void catapult_controller(catapult_controller_handle_t *handle, button_event_t *e
                 // handle->turn_angle = CATAPULT_TILT_RIGHT_ANGLE;
 
                 break;
+        // case STATE_BASE_TURN:
+        //         if (event->pin == GPIO_BUTTON_TILT_LEFT && event->new_state == BUTTON_DOWN)
+        //                 handle->state = STATE_BASE_LEFT;
+        //         if (event->pin == GPIO_BUTTON_TILT_RIGHT && event->new_state == BUTTON_DOWN)
+        //                 handle->state = STATE_BASE_RIGHT;
+        //         if (event->pin == GPIO_BUTTON_SHOOT && event->new_state == BUTTON_DOWN)
+        //                 handle->state = STATE_CATAPULT_ACCUMULATE;
+        //         break;
+        //     case STATE_BASE_LEFT:
+        //         if (event->pin == GPIO_BUTTON_TILT_LEFT && event->new_state == BUTTON_UP)
+        //                 handle->state = STATE_BASE_TURN;
+        //         handle->turn_angle = catapult_controller_constrain(handle->turn_angle + 0.05, 0, 180);
+        //         break;
+        // case STATE_BASE_RIGHT:
+        //         if (event->pin == GPIO_BUTTON_TILT_RIGHT && event->new_state == BUTTON_UP)
+        //                 handle->state = STATE_BASE_TURN;
+        //         handle->turn_angle = catapult_controller_constrain(handle->turn_angle - 0.05, 0, 180);
+        //         break;
         case STATE_CATAPULT_ACCUMULATE:
                 if (event->pin == GPIO_BUTTON_SHOOT && event->new_state == BUTTON_UP){
                         handle->state = STATE_CATAPULT_SHOOT;
