@@ -5,6 +5,7 @@
 #include "button.h"
 #include "pindef.h"
 #include "mathop.h"
+#include "laser.h"
 
 #define CATAPULT_TURN_DEFAULT_ANGLE (90)
 #define CATAPULT_WIND_DEFAULT_ANGLE (145)
@@ -36,9 +37,13 @@ typedef struct
         servo_handle_t *laser;
         servo_handle_t *turn;
 
+        laser_handle_t *aiming_laser;
+
         sm_state_t state;
         float wind_angle;
         float turn_angle;
+        float laser_angle;
+        float laser_duty_cycle;
         uint64_t catapult_shot_time;
 
 } catapult_controller_handle_t;
