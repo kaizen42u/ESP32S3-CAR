@@ -45,9 +45,10 @@
     "motor_controller.h": "c",
     "pindef.h": "c",
     "connection.h": "c",
-    "bitset": "c"
+    "bitset": "c",
+    "ws2812.h": "c"
   },
-  "idf.port": "/dev/ttyACM1",
+  "idf.port": "/dev/ttyACM0",
   "cSpell.words": [
     "ANYEDGE",
     "cmpr",

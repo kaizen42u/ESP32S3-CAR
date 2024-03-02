@@ -1,18 +1,6 @@
 
 #include "catapult_controller.h"
 
-#define CATAPULT_TILT_LEFT_ANGLE (50)
-#define CATAPULT_TILT_RIGHT_ANGLE (130)
-
-float catapult_controller_constrain(float value, float min, float max)
-{
-        if (value >= max)
-                return max;
-        if (value <= min)
-                return min;
-        return value;
-}
-
 catapult_controller_handle_t *catapult_controller_default_config(catapult_controller_handle_t *handle)
 {
         static servo_handle_t lock, wind, laser, turn;
@@ -88,17 +76,17 @@ void catapult_controller(catapult_controller_handle_t *handle, button_event_t *e
         //     case STATE_BASE_LEFT:
         //         if (event->pin == GPIO_BUTTON_TILT_LEFT && event->new_state == BUTTON_UP)
         //                 handle->state = STATE_BASE_TURN;
-        //         handle->turn_angle = catapult_controller_constrain(handle->turn_angle + 0.05, 0, 180);
+        //         handle->turn_angle = constrain(handle->turn_angle + 0.05, 0, 180);
         //         break;
         // case STATE_BASE_RIGHT:
         //         if (event->pin == GPIO_BUTTON_TILT_RIGHT && event->new_state == BUTTON_UP)
         //                 handle->state = STATE_BASE_TURN;
-        //         handle->turn_angle = catapult_controller_constrain(handle->turn_angle - 0.05, 0, 180);
+        //         handle->turn_angle = constrain(handle->turn_angle - 0.05, 0, 180);
         //         break;
         case STATE_CATAPULT_ACCUMULATE:
                 if (event->pin == GPIO_BUTTON_SHOOT && event->new_state == BUTTON_UP)
                         handle->state = STATE_CATAPULT_SHOOT;
-                handle->wind_angle = catapult_controller_constrain(handle->wind_angle - 0.03, 0, 180);
+                handle->wind_angle = constrain(handle->wind_angle - 0.03, 0, 180);
                 break;
         case STATE_CATAPULT_SHOOT:
                 servo_set_angle(handle->lock, CATAPULT_LOCK_UNLOCKED_ANGLE);
@@ -106,7 +94,7 @@ void catapult_controller(catapult_controller_handle_t *handle, button_event_t *e
                 handle->state = STATE_CATAPULT_DECAY;
                 break;
         case STATE_CATAPULT_DECAY:
-                handle->wind_angle = catapult_controller_constrain(handle->wind_angle + 0.03, 0, 145);
+                handle->wind_angle = constrain(handle->wind_angle + 0.03, 0, 145);
                 if (handle->wind_angle >= 145.0F)
                         handle->state = STATE_RESET_DELAY;
                 break;

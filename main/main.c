@@ -120,26 +120,11 @@ void ping_task()
 
 void power_switch_task()
 {
-        uint8_t elapsed_time = 0;
+        int32_t elapsed_time = 0;
         for (;;)
         {
-                if (esp_connection_handle.remote_connected)
-                {
-                        elapsed_time = 0;
-                }
-                else if (elapsed_time < TIME_BEFORE_RESET)
-                {
-                        elapsed_time = elapsed_time + 1;
-                }
-
-                if (elapsed_time >= TIME_BEFORE_RESET)
-                {
-                        kill_power();
-                }
-                else
-                {
-                        keep_power();
-                }
+                (esp_connection_handle.remote_connected) ? elapsed_time = 0 : elapsed_time++;
+                (elapsed_time >= TIME_BEFORE_RESET) ? kill_power() : keep_power();
                 vTaskDelay(pdMS_TO_TICKS(1000));
         }
 }
@@ -186,6 +171,7 @@ void app_main(void)
         xTaskCreate(ping_task, "ping_task", 4096, NULL, 4, NULL);
         xTaskCreate(info_task, "info_task", 4096, NULL, 4, NULL);
         xTaskCreate(power_switch_task, "power_switch_task", 4096, NULL, 4, NULL);
+        motor_controller_stop_all(&motor_controller_handle);
 
         while (true)
         {

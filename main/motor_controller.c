@@ -82,8 +82,8 @@ motor_controller_handle_t *motor_controller_default_config(motor_controller_hand
         // setup pid controllers
 
         static pid_handle_t left_motor_pid_handle, right_motor_pid_handle;
-        pid_init(&left_motor_pid_handle, 0.01, 0.11, 0.14, 0.007, 0.3);
-        pid_init(&right_motor_pid_handle, 0.01, 0.1, 0.13, 0.005, 0.3);
+        pid_init(&left_motor_pid_handle, 0.01, 0.07, 0.14, 0.007, 0.3);
+        pid_init(&right_motor_pid_handle, 0.01, 0.07, 0.13, 0.005, 0.3);
         pid_set_output_range(&left_motor_pid_handle, -100, 100);
         pid_set_output_range(&right_motor_pid_handle, -100, 100);
 

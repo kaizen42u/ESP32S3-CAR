@@ -46,8 +46,8 @@ static const char __attribute__((unused)) * BUTTON_STATE_STRING[] = {
 typedef struct
 {
         gpio_num_t pin : 8;
-        button_state_t prev_state : 8;
-        button_state_t new_state : 8;
+        button_state_t prev_state : 4;
+        button_state_t new_state : 4;
 } __packed button_event_t;
 
 QueueHandle_t button_init(void);
