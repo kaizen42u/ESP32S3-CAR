@@ -46,7 +46,8 @@
     "pindef.h": "c",
     "connection.h": "c",
     "bitset": "c",
-    "ws2812.h": "c"
+    "ws2812.h": "c",
+    "nvs_flash.h": "c"
   },
   "idf.port": "/dev/ttyACM0",
   "cSpell.words": [
@@ -54,6 +55,7 @@
     "cmpr",
     "containerof",
     "deadtime",
+    "eeprom",
     "ESPNOW",
     "Espressif",
     "gpio",

@@ -17,12 +17,21 @@
 #include "rssi.h"
 #include "logging.h"
 #include "mathop.h"
+#include "eeprom.h"
 
 static const char __attribute__((unused)) *TAG = "app_main";
 
 static espnow_send_param_t espnow_send_param;
 static esp_connection_handle_t esp_connection_handle;
 static motor_controller_handle_t motor_controller_handle;
+
+typedef struct
+{
+        char time[8];
+        char remote_conn_mac[6];
+} device_settings_t;
+
+static device_settings_t device_settings;
 
 void keep_power(void)
 {
@@ -134,13 +143,25 @@ void app_main(void)
         config_wake_gpio();
 
         // Initialize NVS
-        esp_err_t ret = nvs_flash_init();
-        if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+        esp_err_t err = nvs_flash_init();
+        if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
         {
                 ESP_ERROR_CHECK(nvs_flash_erase());
-                ret = nvs_flash_init();
+                err = nvs_flash_init();
         }
-        ESP_ERROR_CHECK(ret);
+        ESP_ERROR_CHECK(err);
+
+        eeprom_handle_t eeprom_handle;
+        eeprom_default_config(&eeprom_handle);
+        // __unused static const uint8_t broadcast_mac[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+        // __unused static const uint8_t other_mac[ESP_NOW_ETH_ALEN] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
+        // memcpy(device_settings.time, __TIME__, 8);
+        // memcpy(device_settings.remote_conn_mac, broadcast_mac, ESP_NOW_ETH_ALEN);
+        // err = eeprom_set_entry(&eeprom_handle, &device_settings, sizeof(device_settings_t));
+        // ESP_ERROR_CHECK_WITHOUT_ABORT(err);
+        // err = eeprom_get_entry(&eeprom_handle, &device_settings, sizeof(device_settings_t));
+        // ESP_ERROR_CHECK_WITHOUT_ABORT(err);
+        // print_mem(&device_settings, sizeof(device_settings_t));
 
         espnow_config_t espnow_config;
         espnow_wifi_default_config(&espnow_config);
@@ -150,12 +171,12 @@ void app_main(void)
         esp_connection_set_peer_limit(&esp_connection_handle, 2);
         QueueHandle_t espnow_event_queue = espnow_init(&espnow_config, &esp_connection_handle);
 
-        ret = espnow_send_text(&espnow_send_param, "device init");
-        if (ret != ESP_OK)
+        err = espnow_send_text(&espnow_send_param, "device init");
+        if (err != ESP_OK)
         {
                 LOG_ERROR("ESP_NOW send error, quitting");
                 espnow_deinit(&espnow_send_param);
-                ESP_ERROR_CHECK(ret);
+                ESP_ERROR_CHECK(err);
                 vTaskDelete(NULL);
         }
 
