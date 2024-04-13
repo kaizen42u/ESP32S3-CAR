@@ -11,7 +11,9 @@ motor_handle_t *dc_motor_default_config(motor_handle_t *handle)
         handle->mcpwm_config.cmpr_b = 0;
         handle->mcpwm_config.counter_mode = MCPWM_UP_COUNTER;
         handle->mcpwm_config.duty_mode = MCPWM_DUTY_MODE_0;
-        handle->mcpwm_config.frequency = 60;
+        handle->mcpwm_config.frequency = 20000.0F;
+        // handle->mcpwm_group_frequency = 80000000;
+        // handle->mcpwm_timer_frequency = 8000000;
         handle->direction = MOTOR_DIRECTION_DEFAULT;
 
         handle->pcnt_pin = GPIO_NUM_NC;
@@ -32,6 +34,10 @@ void dc_motor_init(motor_handle_t *handle)
         ret = mcpwm_init(handle->mcpwm_unit, handle->mcpwm_timer, &handle->mcpwm_config);
         ESP_ERROR_CHECK(ret);
         ret = mcpwm_deadtime_disable(handle->mcpwm_unit, handle->mcpwm_timer);
+        ESP_ERROR_CHECK(ret);
+        // ret = mcpwm_group_set_resolution(handle->mcpwm_unit, handle->mcpwm_group_frequency);
+        ESP_ERROR_CHECK(ret);
+        // ret = mcpwm_timer_set_resolution(handle->mcpwm_unit, handle->mcpwm_timer, handle->mcpwm_timer_frequency);
         ESP_ERROR_CHECK(ret);
 
         if (handle->pcnt_pin == GPIO_NUM_NC)

@@ -11,15 +11,15 @@
 // 範圍: 10 to 100
 #define IDLE_SHUTDOWN_SECONDS 10
 
-// 左車輪功率
+// 左車輪PWM
 // 單位: 百分比 - %
-// 範圍: 20 to 100
-#define LEFT_MOTOR_POWER 30
+// 範圍: 60 to 100
+#define LEFT_MOTOR_POWER 72
 
-// 右車輪功率
+// 右車輪PWM
 // 單位: 百分比 - %
-// 範圍: 20 to 100
-#define RIGHT_MOTOR_POWER 30
+// 範圍: 60 to 100
+#define RIGHT_MOTOR_POWER 72
 
 // 設定後，遙控車將會剎車而非滑行
 // 可選: true, false

@@ -6,6 +6,7 @@
 #include "driver/gpio.h"
 #include "driver/mcpwm.h"
 #include "driver/pulse_cnt.h"
+#include "hal/mcpwm_ll.h"
 
 #include "logging.h"
 #include "mathop.h"
@@ -25,6 +26,8 @@ typedef struct
         mcpwm_io_signals_t mcpwm_ch_A_signal;
         mcpwm_io_signals_t mcpwm_ch_B_signal;
         mcpwm_config_t mcpwm_config;
+        // uint32_t mcpwm_group_frequency;
+        // uint32_t mcpwm_timer_frequency;
         motor_direction_t direction;
 
         gpio_num_t pcnt_pin;
