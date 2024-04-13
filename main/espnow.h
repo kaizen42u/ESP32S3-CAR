@@ -32,6 +32,8 @@
 #include "mem_probe.h"
 #include "logging.h"
 #include "rssi.h"
+#include "device_settings.h"
+#include "info.h"
 
 #define ONE_SECOND_IN_US (1 * 1e6)
 
@@ -192,16 +194,20 @@ typedef struct
         int64_t lastseen_unicast_us;
         int64_t lastsent_unicast_us;
         int64_t connect_time_us;
+        int64_t last_ping_us;
         size_t conn_retry;
         size_t seq_rx;
         size_t seq_tx;
         esp_peer_status_t status;
         int rssi;
         bool registered;
+        bool is_unique;
+        bool saved_to_rom;
 } esp_peer_t;
 
 typedef struct
 {
+        device_settings_t *device_settings;
         esp_peer_t *entries;
         int8_t size;
         int8_t limit;
@@ -225,12 +231,17 @@ esp_err_t espnow_send_data(espnow_send_param_t *send_param, espnow_param_type_t 
 esp_err_t espnow_send_text(espnow_send_param_t *send_param, char *text);
 esp_err_t espnow_reply(espnow_send_param_t *send_param);
 
+void esp_connection_enable_broadcast(esp_connection_handle_t *handle);
+void esp_connection_disable_broadcast(esp_connection_handle_t *handle);
+
 void esp_connection_handle_init(esp_connection_handle_t *handle);
+void esp_connection_handle_connect_to_device_settings(esp_connection_handle_t *handle, device_settings_t *device_settings);
 void esp_connection_handle_clear(esp_connection_handle_t *handle);
 void esp_connection_handle_update(esp_connection_handle_t *handle);
 void esp_connection_update_rssi(esp_connection_handle_t *handle, const rssi_event_t *rssi_event);
 
 size_t esp_connection_count_connected(esp_connection_handle_t *handle);
+size_t esp_connection_count_unique_peer(esp_connection_handle_t *handle);
 esp_peer_t *esp_connection_mac_lookup(esp_connection_handle_t *handle, const uint8_t *mac);
 esp_peer_t *esp_connection_mac_add_to_entry(esp_connection_handle_t *handle, const uint8_t *mac);
 
@@ -238,5 +249,7 @@ void esp_connection_show_entries(esp_connection_handle_t *handle);
 void esp_connection_send_heartbeat(esp_connection_handle_t *handle);
 
 void esp_connection_set_peer_limit(esp_connection_handle_t *handle, int8_t new_limit);
+void esp_connection_set_unique_peer_mac(esp_connection_handle_t *handle, const uint8_t *mac);
 void esp_peer_set_status(esp_peer_t *peer, esp_peer_status_t new_status);
 void esp_peer_process_received(esp_peer_t *peer, espnow_data_t *recv_data);
+void esp_connection_purge_non_unique_peers(esp_connection_handle_t *handle);

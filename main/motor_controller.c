@@ -234,16 +234,24 @@ void update_motors(motor_controller_handle_t *handle)
                 dc_motor_set_duty(handle->right_motor_handle, motor_stat.right_motor.duty_cycle);
                 break;
         default:
-                dc_motor_coast(handle->left_motor_handle);
-                dc_motor_coast(handle->right_motor_handle);
+                if (MOTOR_BRAKE_ON_IDLE)
+                {
+                        dc_motor_brake(handle->left_motor_handle);
+                        dc_motor_brake(handle->right_motor_handle);
+                }
+                else
+                {
+                        dc_motor_coast(handle->left_motor_handle);
+                        dc_motor_coast(handle->right_motor_handle);
+                }
                 break;
         }
 }
 
 void motor_controller_openloop(motor_controller_handle_t *handle, button_event_t *event)
 {
-        motor_stat.left_motor.duty_cycle = 50;
-        motor_stat.right_motor.duty_cycle = 50;
+        motor_stat.left_motor.duty_cycle = LEFT_MOTOR_POWER;
+        motor_stat.right_motor.duty_cycle = RIGHT_MOTOR_POWER;
         update_motors(handle);
         read_buttons(handle, event);
 }

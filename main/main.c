@@ -18,47 +18,19 @@
 #include "logging.h"
 #include "mathop.h"
 #include "eeprom.h"
+#include "device_settings.h"
+#include "power.h"
 
 static const char __attribute__((unused)) *TAG = "app_main";
 
 static espnow_send_param_t espnow_send_param;
 static esp_connection_handle_t esp_connection_handle;
 static motor_controller_handle_t motor_controller_handle;
-
-typedef struct
-{
-        char time[8];
-        char remote_conn_mac[6];
-} device_settings_t;
-
 static device_settings_t device_settings;
-
-void keep_power(void)
-{
-        gpio_set_level(GPIO_WAKE, 1);
-}
-
-void kill_power(void)
-{
-        gpio_set_level(GPIO_WAKE, 0);
-}
-
-void config_wake_gpio(void)
-{
-        gpio_config_t wake_io_conf = {
-            .pin_bit_mask = 1 << GPIO_WAKE,
-            .mode = GPIO_MODE_OUTPUT,
-            .pull_up_en = GPIO_PULLUP_DISABLE,
-            .pull_down_en = GPIO_PULLDOWN_DISABLE,
-            .intr_type = GPIO_INTR_DISABLE,
-        };
-        ESP_ERROR_CHECK(gpio_config(&wake_io_conf));
-        keep_power();
-}
 
 void rssi_task()
 {
-        ws2812_hsv_t hsv = {.h = 350, .s = 75, .v = 0};
+        ws2812_hsv_t hsv = {.h = RGB_LED_HUE, .s = RGB_LED_SATURATION, .v = 0};
         ws2812_handle_t ws2812_handle;
         ws2812_default_config(&ws2812_handle);
         ws2812_init(&ws2812_handle);
@@ -75,7 +47,7 @@ void rssi_task()
                         // print_rssi_event(&rssi_event);
                         esp_connection_update_rssi(&esp_connection_handle, &rssi_event);
 
-                        const int rssi_min = -20;
+                        const int rssi_min = MIN_RSSI_TO_INITIATE_CONNECTION;
                         if (rssi_event.rssi > rssi_min)
                         {
                                 countdown = 100;
@@ -92,7 +64,7 @@ void rssi_task()
                 else
                 {
                         if (esp_connection_handle.remote_connected)
-                                hsv.v = 3 * esp_connection_handle.remote_connected;
+                                hsv.v = RGB_LED_VALUE * esp_connection_handle.remote_connected;
                         else
                                 hsv.v = 0;
                         ws2812_set_hsv(&ws2812_handle, &hsv);
@@ -107,9 +79,10 @@ void info_task()
         for (;;)
         {
                 // motor_controller_print_stat();
-                if (esp_connection_handle.remote_connected)
+                if (esp_connection_handle.remote_connected && DEBUG_TRANSMIT_PID_STATUS_TO_REMOTE)
                 {
-                        motor_group_stat_pkt_t *stat = motor_controller_get_stat();
+                        // esp_connection_disable_broadcast(&esp_connection_handle);
+                        __unused motor_group_stat_pkt_t *stat = motor_controller_get_stat();
                         espnow_send_data(&espnow_send_param, ESPNOW_PARAM_TYPE_MOTOR_STAT, stat, sizeof(motor_group_stat_pkt_t)); // DEBUG ONLY
                 }
                 vTaskDelay(pdMS_TO_TICKS(100));
@@ -125,16 +98,19 @@ void ping_task()
         }
 }
 
-#define TIME_BEFORE_RESET (10)
-
 void power_switch_task()
 {
-        int32_t elapsed_time = 0;
+        static int64_t time_us = 0;
         for (;;)
         {
-                (esp_connection_handle.remote_connected) ? elapsed_time = 0 : elapsed_time++;
-                (elapsed_time >= TIME_BEFORE_RESET) ? kill_power() : keep_power();
-                vTaskDelay(pdMS_TO_TICKS(1000));
+                if (esp_connection_handle.remote_connected)
+                        time_us = esp_timer_get_time();
+                int64_t duration = esp_timer_get_time() - time_us;
+                (duration >= constrain(IDLE_SHUTDOWN_SECONDS, 10, 100) * ONE_SECOND_IN_US) ? kill_power() : keep_power();
+                
+                if (SHOW_CONNECTION_STATUS)
+                        esp_connection_show_entries(&esp_connection_handle);
+                vTaskDelay(pdMS_TO_TICKS(3000));
         }
 }
 
@@ -146,37 +122,35 @@ void app_main(void)
         esp_err_t err = nvs_flash_init();
         if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
         {
+                LOG_WARNING("Resetting EEPROM data!");
+                // NVS partition was truncated and needs to be erased
+                // Retry nvs_flash_init
                 ESP_ERROR_CHECK(nvs_flash_erase());
                 err = nvs_flash_init();
         }
         ESP_ERROR_CHECK(err);
 
-        eeprom_handle_t eeprom_handle;
-        eeprom_default_config(&eeprom_handle);
-        // __unused static const uint8_t broadcast_mac[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-        // __unused static const uint8_t other_mac[ESP_NOW_ETH_ALEN] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
-        // memcpy(device_settings.time, __TIME__, 8);
-        // memcpy(device_settings.remote_conn_mac, broadcast_mac, ESP_NOW_ETH_ALEN);
-        // err = eeprom_set_entry(&eeprom_handle, &device_settings, sizeof(device_settings_t));
-        // ESP_ERROR_CHECK_WITHOUT_ABORT(err);
-        // err = eeprom_get_entry(&eeprom_handle, &device_settings, sizeof(device_settings_t));
-        // ESP_ERROR_CHECK_WITHOUT_ABORT(err);
-        // print_mem(&device_settings, sizeof(device_settings_t));
+        device_settings_init(&device_settings);
 
         espnow_config_t espnow_config;
         espnow_wifi_default_config(&espnow_config);
         espnow_wifi_init(&espnow_config);
         espnow_default_send_param(&espnow_send_param);
         esp_connection_handle_init(&esp_connection_handle);
+        // LOG_ERROR("&device_settings = %p", &device_settings);
+        esp_connection_handle_connect_to_device_settings(&esp_connection_handle, &device_settings);
         esp_connection_set_peer_limit(&esp_connection_handle, 2);
         QueueHandle_t espnow_event_queue = espnow_init(&espnow_config, &esp_connection_handle);
+        esp_connection_enable_broadcast(&esp_connection_handle);
+
+        esp_connection_mac_add_to_entry(&esp_connection_handle, device_settings.remote_conn_mac);
+        espnow_default_send_param(&espnow_send_param);
 
         err = espnow_send_text(&espnow_send_param, "device init");
         if (err != ESP_OK)
         {
-                LOG_ERROR("ESP_NOW send error, quitting");
+                ESP_ERROR_CHECK_WITHOUT_ABORT(err);
                 espnow_deinit(&espnow_send_param);
-                ESP_ERROR_CHECK(err);
                 vTaskDelete(NULL);
         }
 
@@ -192,7 +166,9 @@ void app_main(void)
         xTaskCreate(ping_task, "ping_task", 4096, NULL, 4, NULL);
         xTaskCreate(info_task, "info_task", 4096, NULL, 4, NULL);
         xTaskCreate(power_switch_task, "power_switch_task", 4096, NULL, 4, NULL);
+
         motor_controller_stop_all(&motor_controller_handle);
+        esp_connection_set_unique_peer_mac(&esp_connection_handle, device_settings.remote_conn_mac);
 
         while (true)
         {
@@ -230,12 +206,17 @@ void app_main(void)
                                 espnow_get_send_param(&espnow_send_param, peer);
                                 esp_peer_process_received(peer, recv_data);
 
+                                LOG_VERBOSE("peer " MACSTR " is %s", MAC2STR(recv_cb->mac_addr), recv_data->broadcast ? "BROADCAST" : "UNICAST");
+
                                 if (recv_data->broadcast == ESPNOW_DATA_UNICAST)
                                 {
                                         if (recv_data->len == sizeof(button_event_t))
                                                 memcpy(&remote_button_event, recv_data->payload, recv_data->len);
                                         // print_mem(recv_data->payload, recv_data->len);
                                 }
+
+                                // if (recv_data->type != ESPNOW_PARAM_TYPE_ACK)
+                                // espnow_reply(&espnow_send_param);
 
                                 free(recv_cb->data);
 
@@ -252,9 +233,9 @@ void app_main(void)
                 }
                 else
                 {
-                        motor_controller(&motor_controller_handle, &remote_button_event);
-                        // motor_controller_openloop(&motor_controller_handle, &remote_button_event);
-                        catapult_controller(&catapult_controller_handle, &remote_button_event);
+                        // motor_controller(&motor_controller_handle, &remote_button_event);
+                        motor_controller_openloop(&motor_controller_handle, &remote_button_event);
+                        // catapult_controller(&catapult_controller_handle, &remote_button_event);
                 }
                 esp_connection_handle_update(&esp_connection_handle);
                 heap_caps_check_integrity_all(true);

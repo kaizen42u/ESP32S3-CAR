@@ -10,6 +10,7 @@
 
 #include "packets.h"
 #include "esp_log.h"
+#include "info.h"
 
 #define DISTANCE_DIFFERENCE_INTEGRATE_SAMPLES (5)
 #define VELOCITY_INTEGRATE_SAMPLES (5)

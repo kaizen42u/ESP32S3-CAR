@@ -9,8 +9,8 @@ laser_handle_t *laser_default_config(laser_handle_t *handle)
         handle->timer = LEDC_TIMER_1;
         handle->channel = LEDC_CHANNEL_4;
         handle->pin = 0;
-        handle->duty_resolution = LEDC_TIMER_14_BIT; // 14bit is what we can have at most
-        handle->freq_hz = 1000.0F;      
+        handle->duty_resolution = LEDC_TIMER_10_BIT;
+        handle->freq_hz = 10000.0F;      
         handle->duty_max = (1UL << handle->duty_resolution) - 1;              
         return handle;
 }
