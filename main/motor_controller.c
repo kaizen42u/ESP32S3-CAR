@@ -84,6 +84,10 @@ motor_controller_handle_t *motor_controller_default_config(motor_controller_hand
         static pid_handle_t left_motor_pid_handle, right_motor_pid_handle;
         pid_init(&left_motor_pid_handle, 0.01, 0.07, 0.14, 0.007, 0.3);
         pid_init(&right_motor_pid_handle, 0.01, 0.07, 0.13, 0.005, 0.3);
+#if (CAR_USE_PID_CONTROL == true)
+        pid_init(&left_motor_pid_handle, 0.01, LEFT_MOTOR_P_TERM, LEFT_MOTOR_I_TERM, LEFT_MOTOR_D_TERM, 0.3);
+        pid_init(&right_motor_pid_handle, 0.01, RIGHT_MOTOR_P_TERM, RIGHT_MOTOR_I_TERM, RIGHT_MOTOR_D_TERM, 0.3);
+#endif
         pid_set_output_range(&left_motor_pid_handle, -100, 100);
         pid_set_output_range(&right_motor_pid_handle, -100, 100);
 

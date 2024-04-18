@@ -107,7 +107,7 @@ void power_switch_task()
                         time_us = esp_timer_get_time();
                 int64_t duration = esp_timer_get_time() - time_us;
                 (duration >= constrain(IDLE_SHUTDOWN_SECONDS, 10, 100) * ONE_SECOND_IN_US) ? kill_power() : keep_power();
-                
+
                 if (SHOW_CONNECTION_STATUS)
                         esp_connection_show_entries(&esp_connection_handle);
                 vTaskDelay(pdMS_TO_TICKS(3000));
@@ -233,8 +233,11 @@ void app_main(void)
                 }
                 else
                 {
-                        // motor_controller(&motor_controller_handle, &remote_button_event);
+#if (CAR_USE_PID_CONTROL == true)
+                        motor_controller(&motor_controller_handle, &remote_button_event);
+#else
                         motor_controller_openloop(&motor_controller_handle, &remote_button_event);
+#endif
                         // catapult_controller(&catapult_controller_handle, &remote_button_event);
                 }
                 esp_connection_handle_update(&esp_connection_handle);
