@@ -13,6 +13,7 @@
 #include "pindef.h"
 #include "motor_controller.h"
 #include "catapult_controller.h"
+#include "goalkeeper_controller.h"
 #include "ws2812.h"
 #include "rssi.h"
 #include "logging.h"
@@ -158,9 +159,17 @@ void app_main(void)
         motor_controller_init(&motor_controller_handle);
         motor_controller_set_mcpwm_enable(&motor_controller_handle);
 
+#if (HAS_GOALKEEPER_MODULE == true)
+        goalkeeper_controller_handle_t goalkeeper_controller_handle;
+        goalkeeper_controller_default_config(&goalkeeper_controller_handle);
+        goalkeeper_controller_init(&goalkeeper_controller_handle);
+#endif
+
+#if (HAS_CATAPULT_MODULE == true)
         catapult_controller_handle_t catapult_controller_handle;
         catapult_controller_default_config(&catapult_controller_handle);
         catapult_controller_init(&catapult_controller_handle);
+#endif
 
         xTaskCreate(rssi_task, "rssi_task", 4096, NULL, 4, NULL);
         xTaskCreate(ping_task, "ping_task", 4096, NULL, 4, NULL);
@@ -238,7 +247,14 @@ void app_main(void)
 #else
                         motor_controller_openloop(&motor_controller_handle, &remote_button_event);
 #endif
-                        // catapult_controller(&catapult_controller_handle, &remote_button_event);
+
+#if (HAS_GOALKEEPER_MODULE == true)
+                        goalkeeper_controller(&goalkeeper_controller_handle, &remote_button_event);
+#endif
+
+#if (HAS_CATAPULT_MODULE == true)
+                        catapult_controller(&catapult_controller_handle, &remote_button_event);
+#endif
                 }
                 esp_connection_handle_update(&esp_connection_handle);
                 heap_caps_check_integrity_all(true);

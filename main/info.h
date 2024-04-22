@@ -2,6 +2,16 @@
 
 /* ---> 遙控車設定 <--- */
 
+// 遙控車有守門模組
+// 可選: true, false
+// 默認: false
+#define HAS_GOALKEEPER_MODULE true
+
+// 遙控車有投射器模組
+// 可選: true, false
+// 默認: false
+#define HAS_CATAPULT_MODULE true
+
 // 當遙控車與遙控器斷開連接後，多少秒後自動關機
 // 單位: 秒 - s
 // 範圍: 10 to 100
