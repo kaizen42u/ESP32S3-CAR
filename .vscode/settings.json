@@ -50,17 +50,20 @@
     "nvs_flash.h": "c",
     "logging.h": "c",
     "esp_now.h": "c",
-    "device_settings.h": "c"
+    "device_settings.h": "c",
+    "goalkeeper_controller.h": "c"
   },
   "idf.port": "/dev/ttyACM0",
   "cSpell.words": [
     "ANYEDGE",
+    "closeloop",
     "cmpr",
     "containerof",
     "deadtime",
     "eeprom",
     "ESPNOW",
     "Espressif",
+    "FUNDUINO",
     "gpio",
     "hpoint",
     "ifidx",

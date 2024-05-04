@@ -52,7 +52,7 @@ void rssi_task()
                         if (rssi_event.rssi > rssi_min)
                         {
                                 countdown = 100;
-                                float led_volume = map(rssi_event.rssi, 0, rssi_min, 50, 0);
+                                float led_volume = map(rssi_event.rssi, rssi_min, 0, 0, 50);
                                 led_volume = constrain(led_volume, 0, 100);
                                 hsv.v = led_volume;
                                 ws2812_set_hsv(&ws2812_handle, &hsv);
@@ -84,7 +84,7 @@ void info_task()
                 {
                         // esp_connection_disable_broadcast(&esp_connection_handle);
                         __unused motor_group_stat_pkt_t *stat = motor_controller_get_stat();
-                        espnow_send_data(&espnow_send_param, ESPNOW_PARAM_TYPE_MOTOR_STAT, stat, sizeof(motor_group_stat_pkt_t)); // DEBUG ONLY
+                        espnow_send_data(&espnow_send_param, ESPNOW_PACKET_TYPE_MOTOR_STAT, stat, sizeof(motor_group_stat_pkt_t)); // DEBUG ONLY
                 }
                 vTaskDelay(pdMS_TO_TICKS(100));
         }
@@ -133,10 +133,10 @@ void app_main(void)
 
         device_settings_init(&device_settings);
 
-        espnow_config_t espnow_config;
+        espnow_wifi_config_t espnow_config;
         espnow_wifi_default_config(&espnow_config);
         espnow_wifi_init(&espnow_config);
-        espnow_default_send_param(&espnow_send_param);
+        espnow_get_default_send_param(&espnow_send_param);
         esp_connection_handle_init(&esp_connection_handle);
         // LOG_ERROR("&device_settings = %p", &device_settings);
         esp_connection_handle_connect_to_device_settings(&esp_connection_handle, &device_settings);
@@ -145,7 +145,7 @@ void app_main(void)
         esp_connection_enable_broadcast(&esp_connection_handle);
 
         esp_connection_mac_add_to_entry(&esp_connection_handle, device_settings.remote_conn_mac);
-        espnow_default_send_param(&espnow_send_param);
+        espnow_get_default_send_param(&espnow_send_param);
 
         err = espnow_send_text(&espnow_send_param, "device init");
         if (err != ESP_OK)
@@ -187,7 +187,7 @@ void app_main(void)
                 espnow_event_t espnow_evt;
                 while (xQueueReceive(espnow_event_queue, &espnow_evt, 0))
                 {
-                        espnow_data_t *recv_data = NULL;
+                        espnow_packet_t *recv_data = NULL;
                         switch (espnow_evt.id)
                         {
                         case ESPNOW_SEND_CB:
@@ -211,7 +211,7 @@ void app_main(void)
                                         break;
                                 }
 
-                                esp_peer_t *peer = esp_connection_mac_add_to_entry(&esp_connection_handle, recv_cb->mac_addr);
+                                esp_peer_handle_t *peer = esp_connection_mac_add_to_entry(&esp_connection_handle, recv_cb->mac_addr);
                                 espnow_get_send_param(&espnow_send_param, peer);
                                 esp_peer_process_received(peer, recv_data);
 
@@ -224,8 +224,8 @@ void app_main(void)
                                         // print_mem(recv_data->payload, recv_data->len);
                                 }
 
-                                // if (recv_data->type != ESPNOW_PARAM_TYPE_ACK)
-                                // espnow_reply(&espnow_send_param);
+                                // if (recv_data->type != ESPNOW_PACKET_TYPE_ACK)
+                                // espnow_send_reply(&espnow_send_param);
 
                                 free(recv_cb->data);
 
@@ -243,7 +243,7 @@ void app_main(void)
                 else
                 {
 #if (CAR_USE_PID_CONTROL == true)
-                        motor_controller(&motor_controller_handle, &remote_button_event);
+                        motor_controller_closeloop(&motor_controller_handle, &remote_button_event);
 #else
                         motor_controller_openloop(&motor_controller_handle, &remote_button_event);
 #endif

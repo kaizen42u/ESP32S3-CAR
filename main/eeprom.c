@@ -18,11 +18,10 @@ esp_err_t eeprom_get_entry(eeprom_handle_t *eeprom_handle, void *out_value, size
 
         // Open
         LOG_INFO("READING from namespace: %s, key: %s", eeprom_handle->namespace_name, eeprom_handle->key);
-        // LOG_ERROR("open mode: %d", eeprom_handle->open_mode);
-        // LOG_ERROR("handle: %p", &nvs_handle);
+        LOG_VERBOSE(" - open mode: %d", eeprom_handle->open_mode);
+        LOG_VERBOSE(" - handle: %p", &nvs_handle);
 
         err = nvs_open(eeprom_handle->namespace_name, eeprom_handle->open_mode, &nvs_handle);
-        // err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
         if (err != ESP_OK)
                 return err;
 
@@ -40,13 +39,6 @@ esp_err_t eeprom_get_entry(eeprom_handle_t *eeprom_handle, void *out_value, size
                 LOG_WARNING("Nothing saved yet!");
                 return ESP_OK;
         }
-
-        // Read previously saved blob if available
-        // if (size < required_size)
-        // {
-        //         nvs_close(nvs_handle);
-        //         return ESP_ERR_INVALID_SIZE;
-        // }
 
         err = nvs_get_blob(nvs_handle, eeprom_handle->key, out_value, &required_size);
         if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND)
@@ -68,11 +60,10 @@ esp_err_t eeprom_set_entry(eeprom_handle_t *eeprom_handle, void *in_value, size_
 
         // Open
         LOG_INFO("WRITING to namespace: %s, key: %s", eeprom_handle->namespace_name, eeprom_handle->key);
-        // LOG_ERROR("open mode: %d", eeprom_handle->open_mode);
-        // LOG_ERROR("handle: %p", &nvs_handle);
+        LOG_VERBOSE(" - open mode: %d", eeprom_handle->open_mode);
+        LOG_VERBOSE(" - handle: %p", &nvs_handle);
 
         err = nvs_open(eeprom_handle->namespace_name, eeprom_handle->open_mode, &nvs_handle);
-        // err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
         if (err != ESP_OK)
         {
                 ESP_ERROR_CHECK_WITHOUT_ABORT(err);

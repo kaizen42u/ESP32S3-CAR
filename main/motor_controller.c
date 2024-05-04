@@ -1,14 +1,14 @@
 
 #include "motor_controller.h"
 
-static const char *TAG = "motor_controller";
+static const char *TAG = "motor_controller_closeloop";
 
 static motor_group_stat_pkt_t motor_stat;
 const int speed_reference = 10;
 const float rampup_initial = 0.6, rampup_delta = 0.005;
 static float rampup = 0;
 
-bool is_motor_control_pins(gpio_num_t pin)
+bool is_motor_control_buttons(gpio_num_t pin)
 {
         switch (pin)
         {
@@ -120,7 +120,7 @@ motor_controller_handle_t *motor_controller_init(motor_controller_handle_t *hand
         return handle;
 }
 
-void motor_controller_set_direction(motor_controller_handle_t *handle, direction_t direction)
+void motor_controller_set_direction(motor_controller_handle_t *handle, motor_tank_direction_t direction)
 {
         LOG_INFO("direction set [%s ---> %s]", DIRECTION_STRING[handle->direction], DIRECTION_STRING[direction]);
         handle->direction = direction;
@@ -135,7 +135,7 @@ void motor_controller_set_direction(motor_controller_handle_t *handle, direction
         ringbuffer_clear(handle->right_acceleration_rb_handle);
 }
 
-void motor_controller(motor_controller_handle_t *handle, button_event_t *event)
+void motor_controller_closeloop(motor_controller_handle_t *handle, button_event_t *event)
 {
         update_feedback(handle);
         update_pid(handle);
@@ -170,7 +170,7 @@ void read_buttons(motor_controller_handle_t *handle, button_event_t *event)
 {
         if (event->new_state == BUTTON_LONG)
                 return;
-        if (!is_motor_control_pins(event->pin))
+        if (!is_motor_control_buttons(event->pin))
                 return;
         if (event->new_state == BUTTON_UP)
         {

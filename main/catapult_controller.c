@@ -2,8 +2,8 @@
 #include "catapult_controller.h"
 
 static const char *TAG = "catapult_controller";
-float laser_angle_array[] = {110, 108, 106.5, 105.5, 104, 102.5, 101, 101};
-int laser_array_index = 0;
+static const float laser_angle_array[] = {110, 108, 106.5, 105.5, 104, 102.5, 101, 101};
+static int laser_array_index = 0;
 
 catapult_controller_handle_t *catapult_controller_default_config(catapult_controller_handle_t *handle)
 {
@@ -19,7 +19,7 @@ catapult_controller_handle_t *catapult_controller_default_config(catapult_contro
         handle->catapult_shot_time = 0;
         handle->wind_angle = CATAPULT_WIND_DEFAULT_ANGLE;
         handle->laser_angle = CATAPULT_LASER_DEFAULT_ANGLE;
-        handle->laser_duty_cycle = 100;
+        handle->laser_duty_cycle = LASER_POWER;
 
         return handle;
 }
@@ -82,11 +82,11 @@ void catapult_controller(catapult_controller_handle_t *handle, button_event_t *e
                 }
                 if (event->pin == GPIO_BUTTON_SET_SERVO && event->new_state == BUTTON_DOWN)
                 {
-                        LOG_INFO("State: STATE_CATAPULTY_SET_SERVO");
-                        handle->state = STATE_CATAPULTY_SET_SERVO;
+                        LOG_INFO("State: STATE_CATAPULT_SET_SERVO");
+                        handle->state = STATE_CATAPULT_SET_SERVO;
                 }
                 break;
-        case STATE_CATAPULTY_SET_SERVO:
+        case STATE_CATAPULT_SET_SERVO:
                 if (event->pin == GPIO_BUTTON_RESET_SERVO && event->new_state == BUTTON_DOWN)
                         handle->state = STATE_CATAPULT_RESET;
                 servo_set_angle(handle->lock, CATAPULT_LOCK_UNLOCKED_ANGLE);
