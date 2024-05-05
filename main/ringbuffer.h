@@ -8,15 +8,17 @@
 
 typedef struct
 {
-	float *buffer;
-	size_t head, tail, size, capacity;
+	float *buffer;	   // Memory location that will hold the data
+	size_t head, tail; // Trackers
+	size_t size;	   // Number of data stored
+	size_t capacity;   // Maximum number of data that can hold in the buffer
 } ringbuffer_handle_t;
 
 typedef enum
 {
-	RINGBUFFER_OK,
-	RINGBUFFER_EMPTY,
-	RINGBUFFER_FULL,
+	RINGBUFFER_OK,	  // Success
+	RINGBUFFER_EMPTY, // Reading empty buffer
+	RINGBUFFER_FULL,  // Writing full buffer
 	RINGBUFFER_ARGUMENT_ERROR,
 	RINGBUFFER_MAX,
 } ringbuffer_state_t;
@@ -40,5 +42,5 @@ ringbuffer_state_t ringbuffer_fill(ringbuffer_handle_t *handle, float data_in);
 ringbuffer_state_t ringbuffer_peek(ringbuffer_handle_t *handle, float *data_out);
 ringbuffer_state_t ringbuffer_get(ringbuffer_handle_t *handle, float *data_out);
 
-// A differentiator implemtation using ringbuffer
+// A differentiator implementation using ringbuffer
 ringbuffer_state_t differentiator_update(ringbuffer_handle_t *handle, float data_in, float *data_out);
