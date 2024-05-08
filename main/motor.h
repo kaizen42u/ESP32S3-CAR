@@ -48,6 +48,8 @@ motor_handle_t *dc_motor_default_config(motor_handle_t *handle);
 void dc_motor_set_direction(motor_handle_t *handle, motor_direction_t direction);
 // Sets motor PWM regarding to the direction, normalized 0 - 100
 void dc_motor_set_duty(motor_handle_t *handle, float duty_cycle);
+// Sets the operating PWM frequency of the motor
+void dc_motor_set_frequency(motor_handle_t *handle, uint32_t frequency);
 
 // Sets the motor to go forward no matter the direction setting
 void dc_motor_forward(motor_handle_t *handle, float duty_cycle);

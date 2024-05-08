@@ -83,6 +83,12 @@ void dc_motor_set_direction(motor_handle_t *handle, motor_direction_t direction)
         handle->direction = direction;
 }
 
+void dc_motor_set_frequency(motor_handle_t *handle, uint32_t frequency)
+{
+        handle->mcpwm_config.frequency = frequency;
+        mcpwm_set_frequency(handle->mcpwm_unit, handle->mcpwm_timer, handle->mcpwm_config.frequency);
+}
+
 void dc_motor_forward(motor_handle_t *handle, float duty_cycle)
 {
         duty_cycle = constrain(duty_cycle, 0, 100);
