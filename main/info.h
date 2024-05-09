@@ -32,15 +32,15 @@
 
 // 左車輪PWM
 // 單位: 百分比 - %
-// 範圍: 60 to 100
-// 默認: 72
-#define LEFT_MOTOR_POWER 72
+// 範圍: 25 to 100
+// 默認: 35
+#define LEFT_MOTOR_POWER 35
 
 // 右車輪PWM
 // 單位: 百分比 - %
-// 範圍: 60 to 100
-// 默認: 72
-#define RIGHT_MOTOR_POWER 72
+// 範圍: 25 to 100
+// 默認: 35
+#define RIGHT_MOTOR_POWER 35
 
 #else
 
@@ -58,6 +58,17 @@
 // 可選: true, false
 // 默認: false
 #define MOTOR_BRAKE_ON_IDLE false
+
+// 默認車輪PWM頻率
+// 單位: 頻率 - Hz
+// 範圍: 20 to 20000
+// 默認: 500
+#define MOTOR_PWM_FREQUENCY 500
+
+// ???
+// 可選: true, false
+// 默認: false
+#define ENABLE_MUSIC_PLAYER false
 
 /* ---> 投射器設定 <--- */
 
@@ -77,7 +88,7 @@
 // 每隔3秒列出Wi-Fi連線狀態
 // 可選: true, false
 // 默認: true
-#define SHOW_CONNECTION_STATUS true
+#define SHOW_CONNECTION_STATUS false
 
 // 訊號強度大於該值時將嘗試建立連線
 // 單位: 分貝毫瓦 - dBm

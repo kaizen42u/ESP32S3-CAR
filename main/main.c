@@ -21,6 +21,8 @@
 #include "eeprom.h"
 #include "device_settings.h"
 #include "power.h"
+#include "musical_frequencies.h"
+#include "tone_player.h"
 
 static const char __attribute__((unused)) *TAG = "app_main";
 
@@ -87,6 +89,42 @@ void info_task()
                         espnow_send_data(&espnow_send_param, ESPNOW_PACKET_TYPE_MOTOR_STAT, stat, sizeof(motor_group_stat_pkt_t)); // DEBUG ONLY
                 }
                 vTaskDelay(pdMS_TO_TICKS(100));
+        }
+}
+
+#include "music/castle.h"
+void music_tone_task()
+{
+        static tone_player_handle_t tone_player_handle_main, tone_player_handle_sub;
+        static tone_t *tone_main = NULL, *prev_tone_main = NULL;
+        static tone_t *tone_sub = NULL, *prev_tone_sub = NULL;
+        tone_player_load_data(&tone_player_handle_main, tones_main, sizeof(tones_main) / sizeof(*tones_main));
+        tone_player_load_data(&tone_player_handle_sub, tones_sub, sizeof(tones_sub) / sizeof(*tones_sub));
+        tone_player_set_idle_frequency(&tone_player_handle_main, MOTOR_PWM_FREQUENCY);
+        tone_player_set_idle_frequency(&tone_player_handle_sub, MOTOR_PWM_FREQUENCY);
+        for (;;)
+        {
+                motor_handle_t *left_motor = motor_controller_handle.left_motor_handle;
+                motor_handle_t *right_motor = motor_controller_handle.right_motor_handle;
+                tone_player_update(&tone_player_handle_main, &tone_main);
+                tone_player_update(&tone_player_handle_sub, &tone_sub);
+                if (prev_tone_main != tone_main && tone_main != NULL)
+                {
+                        uint32_t frequency = tone_main->frequency;
+                        LOG_VERBOSE("[Main] Frequency = %5lu", frequency);
+                        dc_motor_set_frequency(left_motor, frequency);
+                        if (tone_player_handle_sub.size == 0)
+                                dc_motor_set_frequency(right_motor, frequency);
+                        prev_tone_main = tone_main;
+                }
+                if (prev_tone_sub != tone_sub && tone_sub != NULL)
+                {
+                        uint32_t frequency = tone_sub->frequency;
+                        LOG_VERBOSE("[Sub ] Frequency = %5lu", frequency);
+                        dc_motor_set_frequency(right_motor, frequency);
+                        prev_tone_sub = tone_sub;
+                }
+                vTaskDelay(1);
         }
 }
 
@@ -157,7 +195,9 @@ void app_main(void)
 
         motor_controller_default_config(&motor_controller_handle);
         motor_controller_init(&motor_controller_handle);
-        motor_controller_set_mcpwm_enable(&motor_controller_handle);
+        dc_motor_set_frequency(motor_controller_handle.left_motor_handle, MOTOR_PWM_FREQUENCY);
+        dc_motor_set_frequency(motor_controller_handle.right_motor_handle, MOTOR_PWM_FREQUENCY);
+        motor_controller_clear_mcpwm_enable(&motor_controller_handle);
 
 #if (HAS_GOALKEEPER_MODULE == true)
         goalkeeper_controller_handle_t goalkeeper_controller_handle;
@@ -175,6 +215,10 @@ void app_main(void)
         xTaskCreate(ping_task, "ping_task", 4096, NULL, 4, NULL);
         xTaskCreate(info_task, "info_task", 4096, NULL, 4, NULL);
         xTaskCreate(power_switch_task, "power_switch_task", 4096, NULL, 4, NULL);
+
+#if (ENABLE_MUSIC_PLAYER == true)
+        xTaskCreate(music_tone_task, "music_tone_task", 4096, NULL, 4, NULL);
+#endif
 
         motor_controller_stop_all(&motor_controller_handle);
         esp_connection_set_unique_peer_mac(&esp_connection_handle, device_settings.remote_conn_mac);
@@ -238,10 +282,12 @@ void app_main(void)
 
                 if (esp_connection_handle.remote_connected == 0)
                 {
+                        motor_controller_clear_mcpwm_enable(&motor_controller_handle);
                         motor_controller_stop_all(&motor_controller_handle);
                 }
                 else
                 {
+                        motor_controller_set_mcpwm_enable(&motor_controller_handle);
 #if (CAR_USE_PID_CONTROL == true)
                         motor_controller_closeloop(&motor_controller_handle, &remote_button_event);
 #else

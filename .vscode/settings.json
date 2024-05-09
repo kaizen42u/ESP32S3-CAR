@@ -51,7 +51,8 @@
     "logging.h": "c",
     "esp_now.h": "c",
     "device_settings.h": "c",
-    "goalkeeper_controller.h": "c"
+    "goalkeeper_controller.h": "c",
+    "musical_frequencies.h": "c"
   },
   "idf.port": "/dev/ttyACM0",
   "cSpell.words": [
@@ -95,7 +96,8 @@
     "Rpwm",
     "Rspd",
     "rssi",
-    "setpoint"
+    "setpoint",
+    "USPB"
   ],
   "cmake.configureOnOpen": false
 }
