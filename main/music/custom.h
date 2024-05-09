@@ -3,7 +3,7 @@
 #include "../tone_player.h"
 #include "../musical_frequencies.h"
 
-#define BPM (95)
+#define BPM (95) // This sets your music BPM
 #define BPM_TO_USPB(bpm) (60000000 / (bpm))
 #define TONE_WHOLE_NOTE (BPM_TO_USPB(BPM) * 4)
 #define TONE_HALF_NOTE (BPM_TO_USPB(BPM) * 2)
