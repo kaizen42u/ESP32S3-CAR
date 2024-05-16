@@ -7,6 +7,7 @@ static motor_group_stat_pkt_t motor_stat;
 const int speed_reference = 10;
 const float rampup_initial = 0.6, rampup_delta = 0.005;
 static float rampup = 0;
+static bool control_mode_swap_axis = false;
 
 bool is_motor_control_buttons(gpio_num_t pin)
 {
@@ -16,6 +17,7 @@ bool is_motor_control_buttons(gpio_num_t pin)
         case GPIO_BUTTON_DOWN:
         case GPIO_BUTTON_LEFT:
         case GPIO_BUTTON_RIGHT:
+        case GPIO_BUTTON_TOGGLE_CONTROL:
                 return true;
         default:
                 return false;
@@ -166,6 +168,26 @@ void update_pid(motor_controller_handle_t *handle)
         (rampup >= 1) ? (rampup = 1) : (rampup += rampup_delta);
 }
 
+gpio_num_t translate_button_pin_by_mode(gpio_num_t old, bool control_mode_swap_axis)
+{
+        if (!control_mode_swap_axis)
+                return old;
+
+        switch (old)
+        {
+        case GPIO_BUTTON_UP:
+                return GPIO_BUTTON_LEFT;
+        case GPIO_BUTTON_DOWN:
+                return GPIO_BUTTON_RIGHT;
+        case GPIO_BUTTON_LEFT:
+                return GPIO_BUTTON_DOWN;
+        case GPIO_BUTTON_RIGHT:
+                return GPIO_BUTTON_UP;
+        default:
+                return GPIO_NUM_NC;
+        }
+}
+
 void read_buttons(motor_controller_handle_t *handle, button_event_t *event)
 {
         if (event->new_state == BUTTON_LONG)
@@ -178,7 +200,7 @@ void read_buttons(motor_controller_handle_t *handle, button_event_t *event)
                 set_velocity(0, 0);
                 return;
         }
-        switch (event->pin)
+        switch (translate_button_pin_by_mode(event->pin, control_mode_swap_axis))
         {
         case GPIO_BUTTON_UP:
                 motor_controller_set_direction(handle, DIRECTION_FORWARD);
@@ -195,6 +217,10 @@ void read_buttons(motor_controller_handle_t *handle, button_event_t *event)
         case GPIO_BUTTON_RIGHT:
                 motor_controller_set_direction(handle, DIRECTION_TURN_RIGHT);
                 set_velocity(speed_reference / 2, speed_reference / 2);
+                break;
+        case GPIO_BUTTON_TOGGLE_CONTROL:
+                control_mode_swap_axis = !control_mode_swap_axis;
+                LOG_INFO("Goalkeeper Motor Mode is %s.", control_mode_swap_axis ? "Enabled" : "Disabled");
                 break;
         default:
                 ESP_LOGW(TAG, "button id %d is undefined", event->pin);
