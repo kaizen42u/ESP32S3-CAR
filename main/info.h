@@ -100,7 +100,7 @@
 // https://www.selecolor.com/en/hsv-color-picker/
 
 // 內置彩色LED - 色相
-// 單位: 角度 - °
+// 單位: 角度/相位 - °
 // 範圍: 0 to 360
 // 默認: 350
 #define RGB_LED_HUE 350
