@@ -84,6 +84,7 @@
     "Lspd",
     "MACSTR",
     "mcpwm",
+    "milliwatts",
     "MOTORL",
     "MOTORR",
     "netif",
