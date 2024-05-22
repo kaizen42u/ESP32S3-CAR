@@ -3,7 +3,7 @@
 
 /* ---> Remote Control Car Settings <--- */
 
-// When the remote control car disconnects from the remote controller, 
+// When the remote control car disconnects from the remote controller,
 // how many seconds until it automatically shuts down
 // Unit: seconds (s)
 // Range: 10 to 100
@@ -34,3 +34,6 @@
 // Range: 0 to 100
 // Default: 10
 #define LASER_POWER 10
+
+static const float laser_servo_angles[]  = {110, 108, 106.5, 105.5, 104, 102.5, 101, 101};
+static const float aiming_servo_angles[] = {145, 125, 105  , 85   , 65 , 45   , 25 , 5  };

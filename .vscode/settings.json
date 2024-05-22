@@ -52,7 +52,13 @@
     "esp_now.h": "c",
     "device_settings.h": "c",
     "goalkeeper_controller.h": "c",
-    "musical_frequencies.h": "c"
+    "musical_frequencies.h": "c",
+    "*.tcc": "c",
+    "chrono": "c",
+    "algorithm": "c",
+    "istream": "c",
+    "limits": "c",
+    "numeric": "c"
   },
   "idf.port": "/dev/ttyACM0",
   "cSpell.words": [
