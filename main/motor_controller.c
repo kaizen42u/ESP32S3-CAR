@@ -168,6 +168,7 @@ void update_pid(motor_controller_handle_t *handle)
         (rampup >= 1) ? (rampup = 1) : (rampup += rampup_delta);
 }
 
+// Swaps x-axis event and y-axis event
 gpio_num_t translate_button_pin_by_mode(gpio_num_t old, bool control_mode_swap_axis)
 {
         if (!control_mode_swap_axis)
@@ -184,7 +185,7 @@ gpio_num_t translate_button_pin_by_mode(gpio_num_t old, bool control_mode_swap_a
         case GPIO_BUTTON_RIGHT:
                 return GPIO_BUTTON_UP;
         default:
-                return GPIO_NUM_NC;
+                return old;
         }
 }
 
