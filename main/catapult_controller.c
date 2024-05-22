@@ -16,8 +16,8 @@ static size_t array_index = 0;
 
 void update_servo_angles(catapult_controller_handle_t *handle, size_t array_index)
 {
-        handle->wind_angle = LASER_SERVO_ANGLES[array_index];
-        handle->laser_angle = AIMING_SERVO_ANGLES[array_index];
+        handle->laser_angle = LASER_SERVO_ANGLES[array_index];
+        handle->wind_angle = AIMING_SERVO_ANGLES[array_index];
 }
 
 // Get array length
