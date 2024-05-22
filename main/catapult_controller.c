@@ -14,18 +14,6 @@ static size_t array_index = 0;
 // const int wind_angle_limit_min = 5;   // Minimum angle wind servo is allow to turn
 // const int wind_angle_limit_max = 145; // Maximum angle wind servo is allow to turn
 
-void update_servo_angles(catapult_controller_handle_t *handle, size_t array_index)
-{
-        size_t length = get_array_size();
-        if ((length <= 0) || array_index >= length || array_index < 0)
-        {
-                LOG_ERROR("Failed to update servo angle, array_size=%d, array_index=%d", length, array_index);
-                return;
-        }
-        handle->laser_angle = LASER_SERVO_ANGLES[array_index];
-        handle->wind_angle = AIMING_SERVO_ANGLES[array_index];
-}
-
 // Get array length
 #define COUNT_OF(x) ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 
@@ -53,6 +41,18 @@ size_t get_array_size(void)
         }
 
         return laser_top;
+}
+
+void update_servo_angles(catapult_controller_handle_t *handle, size_t array_index)
+{
+        size_t length = get_array_size();
+        if ((length <= 0) || array_index >= length)
+        {
+                LOG_ERROR("Failed to update servo angle, array_size=%d, array_index=%d", length, array_index);
+                return;
+        }
+        handle->laser_angle = LASER_SERVO_ANGLES[array_index];
+        handle->wind_angle = AIMING_SERVO_ANGLES[array_index];
 }
 
 void reset_servo_angles(catapult_controller_handle_t *handle)
