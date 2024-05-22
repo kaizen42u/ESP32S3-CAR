@@ -28,6 +28,7 @@ void update_servo_angles(catapult_controller_handle_t *handle, size_t array_inde
 
 // Get array length
 #define COUNT_OF(x) ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
+
 size_t get_array_size(void)
 {
         const static size_t laser_top = COUNT_OF(LASER_SERVO_ANGLES);
