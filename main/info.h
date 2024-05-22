@@ -25,14 +25,14 @@
 // Left wheel PWM while turning
 // Unit: percentage - %
 // Range: 25 to 100
-// Default: 25
-#define LEFT_MOTOR_POWER_TURNING 25
+// Default: 30
+#define LEFT_MOTOR_POWER_TURNING 30
 
 // Right wheel PWM while turning
 // Unit: percentage - %
 // Range: 25 to 100
-// Default: 25
-#define RIGHT_MOTOR_POWER_TURNING 25
+// Default: 30
+#define RIGHT_MOTOR_POWER_TURNING 30
 
 // When set, the remote control car will brake instead of coasting
 // Options: true, false
