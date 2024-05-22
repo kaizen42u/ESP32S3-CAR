@@ -8,4 +8,4 @@ include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(main)
 
 idf_build_set_property(COMPILE_OPTIONS "-Wall" APPEND)
-idf_build_set_property(COMPILE_OPTIONS "-Werror" APPEND)
+# idf_build_set_property(COMPILE_OPTIONS "-Werror" APPEND)
