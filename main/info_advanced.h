@@ -4,15 +4,16 @@
 
 // Does the remote control car have a goalkeeper module?
 // Options: true, false
-// Default: false
+// Default: true
 #define HAS_GOALKEEPER_MODULE true
 
 // Does the remote control car have a catapult module?
 // Options: true, false
-// Default: false
+// Default: true
 #define HAS_CATAPULT_MODULE true
 
 // Use PID control for the remote control car?
+// This option REQUIRES the addition hardware of two wheel counters! (which is not present by default)
 // Options: true, false
 // Default: false
 #define CAR_USE_PID_CONTROL false
@@ -37,12 +38,14 @@
 #endif
 
 // Default motor PWM frequency
+// LOWER frequency will cause voltage spikes --> unstable
+// HIGHER frequency will cause the motor to run in reduced efficiency --> more PWM value needed
 // Unit: frequency - Hz
 // Range: 20 to 20000
 // Default: 500
 #define MOTOR_PWM_FREQUENCY 500
 
-// ???
+// Super Secret Setting
 // Options: true, false
 // Default: false
 #define ENABLE_MUSIC_PLAYER false
