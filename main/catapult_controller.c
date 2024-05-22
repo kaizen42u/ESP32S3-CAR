@@ -16,12 +16,18 @@ static size_t array_index = 0;
 
 void update_servo_angles(catapult_controller_handle_t *handle, size_t array_index)
 {
+        size_t length = get_array_size();
+        if ((length <= 0) || array_index >= length || array_index < 0)
+        {
+                LOG_ERROR("Failed to update servo angle, array_size=%d, array_index=%d", length, array_index);
+                return;
+        }
         handle->laser_angle = LASER_SERVO_ANGLES[array_index];
         handle->wind_angle = AIMING_SERVO_ANGLES[array_index];
 }
 
 // Get array length
-#define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+#define COUNT_OF(x) ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 size_t get_array_size(void)
 {
         const static size_t laser_top = COUNT_OF(LASER_SERVO_ANGLES);
