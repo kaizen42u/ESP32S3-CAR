@@ -62,7 +62,7 @@ void next_servo_angles(catapult_controller_handle_t *handle)
         size_t length = get_array_size();
         if (length <= 0)
                 return;
-        if (length < array_index)
+        if (array_index >= (length - 1)) // off-by-one
                 return;
         array_index = array_index + 1;
         update_servo_angles(handle, array_index);
