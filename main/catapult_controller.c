@@ -3,8 +3,8 @@
 
 static const char *TAG = "catapult_controller";
 
-extern const float laser_servo_angles[];
-extern const float aiming_servo_angles[];
+extern const float LASER_SERVO_ANGLES[];
+extern const float AIMING_SERVO_ANGLES[];
 static size_t array_index = 0;
 
 // static const float laser_angle_array[] = {110, 108, 106.5, 105.5, 104, 102.5, 101, 101};
@@ -16,31 +16,32 @@ static size_t array_index = 0;
 
 void update_servo_angles(catapult_controller_handle_t *handle, size_t array_index)
 {
-        handle->wind_angle = laser_servo_angles[array_index];
-        handle->laser_angle = aiming_servo_angles[array_index];
+        handle->wind_angle = LASER_SERVO_ANGLES[array_index];
+        handle->laser_angle = AIMING_SERVO_ANGLES[array_index];
 }
 
+// Get array length
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 size_t get_array_size(void)
 {
-        const static size_t laser_top = COUNT_OF(laser_servo_angles);
-        const static size_t aiming_top = COUNT_OF(aiming_servo_angles);
+        const static size_t laser_top = COUNT_OF(LASER_SERVO_ANGLES);
+        const static size_t aiming_top = COUNT_OF(AIMING_SERVO_ANGLES);
 
         if (laser_top != aiming_top)
         {
-                LOG_ERROR("Size of 'laser_servo_angles' is different from 'aiming_servo_angles'!")
+                LOG_ERROR("Size of 'LASER_SERVO_ANGLES' is different from 'AIMING_SERVO_ANGLES'!")
                 return 0;
         }
 
         if (laser_top <= 0)
         {
-                LOG_ERROR("Size of 'laser_servo_angles' is 0!")
+                LOG_ERROR("Size of 'LASER_SERVO_ANGLES' is 0!")
                 return 0;
         }
 
         if (aiming_top <= 0)
         {
-                LOG_ERROR("Size of 'laser_servo_angles' is 0!")
+                LOG_ERROR("Size of 'LASER_SERVO_ANGLES' is 0!")
                 return 0;
         }
 

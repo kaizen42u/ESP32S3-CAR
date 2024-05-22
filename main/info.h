@@ -41,6 +41,6 @@
 // Each pair of entry is one setting.
 // Starting from 1, increase/decrease by 1.
 //                                         | 1  | 2  | 3    | 4    | 5  | 6    | 7  | 8   |
-static const float laser_servo_angles[]  = { 110, 108, 106.5, 105.5, 104, 102.5, 101, 101 };
-static const float aiming_servo_angles[] = { 145, 125, 105  , 85   , 65 , 45   , 25 , 5   };
+static const float LASER_SERVO_ANGLES[]  = { 110, 108, 106.5, 105.5, 104, 102.5, 101, 101 };
+static const float AIMING_SERVO_ANGLES[] = { 145, 125, 105  , 85   , 65 , 45   , 25 , 5   };
 //                                         | 1  | 2  | 3    | 4    | 5  | 6    | 7  | 8   |
