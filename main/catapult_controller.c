@@ -7,13 +7,6 @@ extern const float LASER_SERVO_ANGLES[];
 extern const float AIMING_SERVO_ANGLES[];
 static size_t array_index = 0;
 
-// static const float laser_angle_array[] = {110, 108, 106.5, 105.5, 104, 102.5, 101, 101};
-// static int laser_array_index = 0;
-
-// const int wind_angle_increment = 20;  // How much will wind servo turns each time
-// const int wind_angle_limit_min = 5;   // Minimum angle wind servo is allow to turn
-// const int wind_angle_limit_max = 145; // Maximum angle wind servo is allow to turn
-
 // Get array length
 #define COUNT_OF(x) ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 
@@ -99,8 +92,6 @@ catapult_controller_handle_t *catapult_controller_default_config(catapult_contro
         handle->state = STATE_CATAPULT_RESET;
         handle->catapult_shot_time = 0;
         reset_servo_angles(handle);
-        // handle->wind_angle = CATAPULT_WIND_DEFAULT_ANGLE;
-        // handle->laser_angle = CATAPULT_LASER_DEFAULT_ANGLE;
         handle->laser_duty_cycle = LASER_POWER;
 
         return handle;
@@ -137,11 +128,6 @@ void catapult_controller(catapult_controller_handle_t *handle, button_event_t *e
         case STATE_CATAPULT_RESET:
                 servo_set_angle(handle->lock, CATAPULT_LOCK_LOCKED_ANGLE);
                 reset_servo_angles(handle);
-                // servo_set_angle(handle->wind, CATAPULT_WIND_DEFAULT_ANGLE);
-                // servo_set_angle(handle->laser, CATAPULT_LASER_DEFAULT_ANGLE);
-                // handle->wind_angle = CATAPULT_WIND_DEFAULT_ANGLE;
-                // handle->laser_angle = CATAPULT_LASER_DEFAULT_ANGLE;
-                // laser_array_index = 0;
                 catapult_controller_set_state(handle, STATE_CATAPULT_IDLE);
                 break;
 
@@ -151,18 +137,12 @@ void catapult_controller(catapult_controller_handle_t *handle, button_event_t *e
                 if (event->pin == GPIO_BUTTON_CA_INCREASE && event->new_state == BUTTON_DOWN)
                 {
                         next_servo_angles(handle);
-                        // handle->wind_angle = constrain(handle->wind_angle - wind_angle_increment, wind_angle_limit_min, wind_angle_limit_max);
-                        // laser_array_index = constrain(laser_array_index + 1, 0, 7);
-                        // handle->laser_angle = laser_angle_array[laser_array_index];
                         catapult_controller_set_state(handle, STATE_CATAPULT_STRENGTH_INCREASE);
                 }
                 // When DECREASE is set, decrease the shooting power / aiming angle
                 if (event->pin == GPIO_BUTTON_CA_DECREASE && event->new_state == BUTTON_DOWN)
                 {
                         prev_servo_angles(handle);
-                        // handle->wind_angle = constrain(handle->wind_angle + wind_angle_increment, wind_angle_limit_min, wind_angle_limit_max);
-                        // laser_array_index = constrain(laser_array_index - 1, 0, 7);
-                        // handle->laser_angle = laser_angle_array[laser_array_index];
                         catapult_controller_set_state(handle, STATE_CATAPULT_STRENGTH_DECREASE);
                 }
                 // Goes to SHOOT routine
