@@ -59,7 +59,8 @@
     "istream": "c",
     "limits": "c",
     "numeric": "c",
-    "info_advanced.h": "c"
+    "info_advanced.h": "c",
+    "thread": "c"
   },
   "idf.port": "/dev/ttyACM0",
   "cSpell.words": [

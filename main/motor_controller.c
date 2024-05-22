@@ -169,12 +169,14 @@ void update_pid(motor_controller_handle_t *handle)
 }
 
 // Swaps x-axis event and y-axis event
-gpio_num_t translate_button_pin_by_mode(gpio_num_t old, bool control_mode_swap_axis)
+gpio_num_t translate_button_pin_by_mode(gpio_num_t pin, bool control_mode_swap_axis)
 {
+        if (!is_motor_control_buttons(pin))
+                return GPIO_NUM_NC;
         if (!control_mode_swap_axis)
-                return old;
+                return pin;
 
-        switch (old)
+        switch (pin)
         {
         case GPIO_BUTTON_UP:
                 return GPIO_BUTTON_LEFT;
@@ -185,23 +187,67 @@ gpio_num_t translate_button_pin_by_mode(gpio_num_t old, bool control_mode_swap_a
         case GPIO_BUTTON_RIGHT:
                 return GPIO_BUTTON_UP;
         default:
-                return old;
+                return pin;
         }
+}
+
+gpio_num_t prefer_linear_event(gpio_num_t pin, button_state_t state)
+{
+        static button_state_t linear_up = BUTTON_UP, linear_down = BUTTON_UP, angular_left = BUTTON_UP, angular_right = BUTTON_UP;
+        switch (pin)
+        {
+        case GPIO_BUTTON_UP:
+                linear_up = state;
+                linear_down = BUTTON_UP;
+                break;
+        case GPIO_BUTTON_DOWN:
+                linear_down = state;
+                linear_up = BUTTON_UP;
+                break;
+        case GPIO_BUTTON_LEFT:
+                angular_left = state;
+                angular_right = BUTTON_UP;
+                break;
+        case GPIO_BUTTON_RIGHT:
+                angular_right = state;
+                angular_left = BUTTON_UP;
+                break;
+        default:
+                return pin; // do nothing
+                break;
+        }
+
+        // Linear first
+        if (linear_up == BUTTON_DOWN)
+                return GPIO_BUTTON_UP;
+        if (linear_down == BUTTON_DOWN)
+                return GPIO_BUTTON_DOWN;
+
+        // Angular later
+        if (angular_left == BUTTON_DOWN)
+                return GPIO_BUTTON_LEFT;
+        if (angular_right == BUTTON_DOWN)
+                return GPIO_BUTTON_RIGHT;
+
+        return GPIO_NUM_NC;
 }
 
 void read_buttons(motor_controller_handle_t *handle, button_event_t *event)
 {
-        if (event->new_state == BUTTON_LONG)
-                return;
         if (!is_motor_control_buttons(event->pin))
                 return;
-        if (event->new_state == BUTTON_UP)
+
+        gpio_num_t new_pin = translate_button_pin_by_mode(event->pin, control_mode_swap_axis);
+        new_pin = prefer_linear_event(new_pin, event->new_state);
+
+        if (new_pin == GPIO_NUM_NC)
         {
                 motor_controller_set_direction(handle, DIRECTION_BRAKE);
                 set_velocity(0, 0);
                 return;
         }
-        switch (translate_button_pin_by_mode(event->pin, control_mode_swap_axis))
+
+        switch (new_pin)
         {
         case GPIO_BUTTON_UP:
                 motor_controller_set_direction(handle, DIRECTION_FORWARD);
@@ -220,11 +266,13 @@ void read_buttons(motor_controller_handle_t *handle, button_event_t *event)
                 set_velocity(speed_reference / 2, speed_reference / 2);
                 break;
         case GPIO_BUTTON_TOGGLE_CONTROL:
+                if (event->new_state != BUTTON_LONG)
+                        break;
                 control_mode_swap_axis = !control_mode_swap_axis;
-                LOG_INFO("Goalkeeper Motor Mode is %s.", control_mode_swap_axis ? "Enabled" : "Disabled");
+                LOG_INFO("Motor axis control is %s.", control_mode_swap_axis ? "Swapped" : "Normal");
                 break;
         default:
-                ESP_LOGW(TAG, "button id %d is undefined", event->pin);
+                LOG_WARNING("Button id %d is undefined", event->pin);
                 break;
         }
         rampup = rampup_initial;
