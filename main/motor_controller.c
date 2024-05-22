@@ -235,6 +235,27 @@ void set_velocity(float left, float right)
         motor_stat.right_motor.set_velocity = right;
 }
 
+void update_duty_cycle_openloop(motor_controller_handle_t *handle)
+{
+        switch (handle->direction)
+        {
+        case DIRECTION_FORWARD:
+        case DIRECTION_BACKWARD:
+                motor_stat.left_motor.duty_cycle = LEFT_MOTOR_POWER;
+                motor_stat.right_motor.duty_cycle = RIGHT_MOTOR_POWER;
+                break;
+        case DIRECTION_TURN_LEFT:
+        case DIRECTION_TURN_RIGHT:
+                motor_stat.left_motor.duty_cycle = LEFT_MOTOR_POWER_TURNING;
+                motor_stat.right_motor.duty_cycle = RIGHT_MOTOR_POWER_TURNING;
+                break;
+        default:
+                motor_stat.left_motor.duty_cycle = 0;
+                motor_stat.right_motor.duty_cycle = 0;
+                break;
+        }
+}
+
 void update_motors(motor_controller_handle_t *handle)
 {
         switch (handle->direction)
@@ -280,8 +301,7 @@ void update_motors(motor_controller_handle_t *handle)
 
 void motor_controller_openloop(motor_controller_handle_t *handle, button_event_t *event)
 {
-        motor_stat.left_motor.duty_cycle = LEFT_MOTOR_POWER;
-        motor_stat.right_motor.duty_cycle = RIGHT_MOTOR_POWER;
+        update_duty_cycle_openloop(handle);
         update_motors(handle);
         read_buttons(handle, event);
 }
