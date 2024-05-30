@@ -267,7 +267,7 @@ void app_main(void)
                                 {
                                         if (recv_data->len == sizeof(button_event_t))
                                                 memcpy(&remote_button_event, recv_data->payload, recv_data->len);
-                                        print_mem(recv_data->payload, recv_data->len);
+                                        // print_mem(recv_data->payload, recv_data->len);
                                 }
 
                                 // if (recv_data->type != ESPNOW_PACKET_TYPE_ACK)
