@@ -45,7 +45,7 @@
 // Unit: percentage - %
 // Range: 0 to 100
 // Default: 10
-#define LASER_POWER 10
+#define LASER_POWER 100
 
 // Servo calibration values
 // Unit: angle/degree - °

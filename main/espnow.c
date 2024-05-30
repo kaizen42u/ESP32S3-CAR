@@ -20,10 +20,10 @@ espnow_wifi_config_t *espnow_wifi_default_config(espnow_wifi_config_t *config)
         char lmk[] = "lmk1234567890123";
         config->mode = WIFI_MODE_AP;
         config->wifi_interface = WIFI_IF_AP;
-        config->wifi_phy_rate = WIFI_PHY_RATE_LORA_250K;
+        config->wifi_phy_rate = WIFI_PHY_RATE_54M;
         config->esp_interface = ESP_IF_WIFI_AP;
         config->channel = 1;
-        config->long_range = true;
+        config->long_range = false;
         config->lmk = lmk;
         config->pmk = pmk;
         espnow_config = config;
@@ -331,6 +331,8 @@ QueueHandle_t espnow_init(espnow_wifi_config_t *espnow_config, esp_connection_ha
 
         /* Initialize ESPNOW and register sending and receiving callback function. */
         ESP_ERROR_CHECK(esp_now_init());
+        if (espnow_config->long_range)
+                espnow_config->wifi_phy_rate = WIFI_PHY_RATE_LORA_250K;
         ESP_ERROR_CHECK(esp_wifi_config_espnow_rate(espnow_config->wifi_interface, espnow_config->wifi_phy_rate));
         ESP_ERROR_CHECK(esp_now_register_send_cb(espnow_send_cb));
         ESP_ERROR_CHECK(esp_now_register_recv_cb(espnow_recv_cb));
