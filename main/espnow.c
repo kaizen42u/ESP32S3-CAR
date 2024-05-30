@@ -20,7 +20,7 @@ espnow_wifi_config_t *espnow_wifi_default_config(espnow_wifi_config_t *config)
         char lmk[] = "lmk1234567890123";
         config->mode = WIFI_MODE_AP;
         config->wifi_interface = WIFI_IF_AP;
-        config->wifi_phy_rate = WIFI_PHY_RATE_54M;
+        config->wifi_phy_rate = WIFI_PHY_RATE_1M_L;
         config->esp_interface = ESP_IF_WIFI_AP;
         config->channel = 1;
         config->long_range = false;
