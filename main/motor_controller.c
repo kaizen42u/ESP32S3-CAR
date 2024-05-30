@@ -217,6 +217,8 @@ gpio_num_t prefer_linear_event(gpio_num_t pin, button_state_t state)
                 break;
         }
 
+        // LOG_WARNING("u:%d, d:%d, l:%d, r:%d | pin:%d, state:%d", linear_up, linear_down, angular_left, angular_right, pin, state);
+
         // Linear first
         if (linear_up == BUTTON_DOWN)
                 return GPIO_BUTTON_UP;

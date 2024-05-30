@@ -267,7 +267,7 @@ void app_main(void)
                                 {
                                         if (recv_data->len == sizeof(button_event_t))
                                                 memcpy(&remote_button_event, recv_data->payload, recv_data->len);
-                                        // print_mem(recv_data->payload, recv_data->len);
+                                        print_mem(recv_data->payload, recv_data->len);
                                 }
 
                                 // if (recv_data->type != ESPNOW_PACKET_TYPE_ACK)
@@ -280,29 +280,29 @@ void app_main(void)
                                 LOG_ERROR("Callback type error: %d", espnow_evt.id);
                                 break;
                         }
-                }
 
-                if (esp_connection_handle.remote_connected == 0)
-                {
-                        motor_controller_clear_mcpwm_enable(&motor_controller_handle);
-                        motor_controller_stop_all(&motor_controller_handle);
-                }
-                else
-                {
-                        motor_controller_set_mcpwm_enable(&motor_controller_handle);
+                        if (esp_connection_handle.remote_connected == 0)
+                        {
+                                motor_controller_clear_mcpwm_enable(&motor_controller_handle);
+                                motor_controller_stop_all(&motor_controller_handle);
+                        }
+                        else
+                        {
+                                motor_controller_set_mcpwm_enable(&motor_controller_handle);
 #if (CAR_USE_PID_CONTROL == true)
-                        motor_controller_closeloop(&motor_controller_handle, &remote_button_event);
+                                motor_controller_closeloop(&motor_controller_handle, &remote_button_event);
 #else
-                        motor_controller_openloop(&motor_controller_handle, &remote_button_event);
+                                motor_controller_openloop(&motor_controller_handle, &remote_button_event);
 #endif
 
 #if (HAS_GOALKEEPER_MODULE == true)
-                        goalkeeper_controller(&goalkeeper_controller_handle, &remote_button_event);
+                                goalkeeper_controller(&goalkeeper_controller_handle, &remote_button_event);
 #endif
 
 #if (HAS_CATAPULT_MODULE == true)
-                        catapult_controller(&catapult_controller_handle, &remote_button_event);
+                                catapult_controller(&catapult_controller_handle, &remote_button_event);
 #endif
+                        }
                 }
                 esp_connection_handle_update(&esp_connection_handle);
                 heap_caps_check_integrity_all(true);
