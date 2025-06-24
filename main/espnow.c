@@ -16,16 +16,14 @@ espnow_wifi_config_t *espnow_wifi_default_config(espnow_wifi_config_t *config)
                 LOG_ERROR("NULL pointer, config=0x%X", (uintptr_t)config);
                 return NULL;
         }
-        char pmk[] = "pmk1234567890123";
-        char lmk[] = "lmk1234567890123";
         config->mode = WIFI_MODE_AP;
         config->wifi_interface = WIFI_IF_AP;
         config->wifi_phy_rate = WIFI_PHY_RATE_1M_L;
         config->esp_interface = ESP_IF_WIFI_AP;
         config->channel = 1;
         config->long_range = false;
-        config->lmk = lmk;
-        config->pmk = pmk;
+        config->lmk = strdup("lmk1234567890123");
+        config->pmk = strdup("pmk1234567890123");
         espnow_config = config;
         return config;
 }
